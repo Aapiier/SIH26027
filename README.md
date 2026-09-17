@@ -56,8 +56,8 @@ The system operates on localized, simulated data representing the following core
 ## 7. Local Installation & Setup
 1. Clone the repository
 ```bash
-git clone https://github.com/YourUsername/SIH26027-Block-Planning.git
-cd SIH26027-Block-Planning
+git clone https://github.com/YourUsername/SIH26027.git
+cd SIH26027
 ```
 
 2. Create and activate a virtual environment
@@ -73,7 +73,7 @@ pip install -r requirements.txt
 
 4. Initialize the local database & run migrations
 ```bash
-alembic upgrade head  # Or python manage.py migrate
+alembic upgrade head 
 ```
 
 5. Start the local backend server
