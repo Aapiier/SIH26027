@@ -54,34 +54,34 @@ The system operates on localized, simulated data representing the following core
 *   **AI & Optimization:** Scikit-Learn / XGBoost (Prioritization), Google OR-Tools (Scheduling constraints), Pandas / NumPy (Data Processing)
 
 ## 7. Local Installation & Setup
-* 1. Clone the repository
+1. Clone the repository
 ```bash
 git clone https://github.com/YourUsername/SIH26027-Block-Planning.git
 cd SIH26027-Block-Planning
 ```
 
-* 2. Create and activate a virtual environment
+2. Create and activate a virtual environment
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows use: venv\Scripts\activate
 ```
 
-* 3. Install dependencies
+3. Install dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-* 4. Initialize the local database & run migrations
+4. Initialize the local database & run migrations
 ```bash
 alembic upgrade head  # Or python manage.py migrate
 ```
 
-* 5. Start the local backend server
+5. Start the local backend server
 ```bash
 uvicorn main:app --reload
 ```
 
-* 6. Start the frontend application
+6. Start the frontend application
 ```bash
 cd frontend
 npm install
@@ -89,7 +89,7 @@ npm start
 ```
 
 ## 8. Usage Instructions
-* 1. Navigate to http://localhost:3000 to access the control dashboard.
-* 2. Click "Sync External Data" to fetch the latest synthetic defects from the local TMS, SMMS, and TDMS mock repositories.
-* 3. Click "Run Optimization Engine" to trigger the AI prioritization and schedule generation against the current COA timetable.
-* 4. View the unified multi-department maintenance blocks on the interactive visual timeline.
+1. Navigate to http://localhost:3000 to access the control dashboard.
+2. Click "Sync External Data" to fetch the latest synthetic defects from the local TMS, SMMS, and TDMS mock repositories.
+3. Click "Run Optimization Engine" to trigger the AI prioritization and schedule generation against the current COA timetable.
+4. View the unified multi-department maintenance blocks on the interactive visual timeline.
