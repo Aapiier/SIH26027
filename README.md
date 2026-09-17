@@ -57,41 +57,6 @@ The system operates on localized, simulated data representing the following core
 *   **Database:** PostgreSQL (or local SQLite for development)
 *   **AI & Optimization:** Scikit-Learn/XGBoost (Prioritization), Google OR-Tools (Scheduling constraints), Pandas/NumPy (Data Processing)
 
-## 7. Local Installation & Setup
-1. Clone the repository
-```bash
-git clone https://github.com/Aapiier/SIH26027.git
-cd SIH26027
-```
-
-2. Create and activate a virtual environment
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows use: venv\Scripts\activate
-```
-
-3. Install dependencies
-```bash
-pip install -r requirements.txt
-```
-
-4. Initialize the local database & run migrations
-```bash
-alembic upgrade head 
-```
-
-5. Start the local backend server
-```bash
-uvicorn main:app --reload
-```
-
-6. Start the frontend application
-```bash
-cd frontend
-npm install
-npm start
-```
-
 ## 8. Usage Instructions
 1. Navigate to https://localhost:3000 to access the control dashboard.
 2. Click "Sync External Data" to fetch the latest synthetic defects from the local TMS, SMMS, and TDMS mock repositories.
@@ -127,7 +92,7 @@ npm start
 **RailSync AI** is a data-driven, intelligent master scheduling system designed to automatically integrate, prioritize, and optimize maintenance blocks across Indian Railways' engineering, signaling, and electrical departments.
 
 > [!IMPORTANT]
-> **Single Source of Truth Document**: For complete architectural specifications, dataset schemas, constraint programming mathematical models, API definitions, and implementation roadmaps, consult `PROJECT_SPECIFICATION.md`. 
+> **Authoritative Single Source of Truth Documentation**: For complete architectural specifications, dataset schemas, constraint programming mathematical models, API definitions, and implementation roadmaps, consult [`00_DOCUMENTATION_INDEX.md`](00_DOCUMENTATION_INDEX.md) and the accompanying 28 root architecture documents (`00_` through `27_`).
 
 Currently, railway maintenance for fixed infrastructure is planned independently by different departments using the manual Block Demand Management System (BDMS). This disjointed process leads to overlapping requests, poor coordination, and suboptimal track utilization. RailSync AI addresses this by replacing the manual workflow with an AI optimization engine that fuses departmental data with train traffic control parameters:
 
