@@ -1,7 +1,10 @@
-# SIH26027: AI-Powered Automatic Block Planning to Maximize Asset Availability
+# Block Demand Management System
+
+## SIH26027: AI-Powered Automatic Block Planning to Maximize Asset Availability
 
 ## 1. Problem Statement
-**Background:** Maintenance for fixed infrastructure on Indian Railways (Engineering, Traction Distribution, and Signal & Telecommunication) is currently planned in decentralized silos. Each department requests maintenance downtime (blocks) manually via the Block Demand Management System (BDMS). 
+**Background:** Maintenance for fixed infrastructure on Indian Railways (Engineering, Traction Distribution, and Signal & Telecommunication) is currently planned in decentralized silos. Each department requests maintenance downtime (blocks) manually via the Block Demand Management System (BDMS).
+
 **The Challenge:** The Control Office attempts to fit these uncoordinated BDMS requests into the live train traffic managed by the Control Office Application (COA). This manual, disjointed process leads to inefficient block utilization, overlapping repair requests, and unnecessary asset downtime that severely impacts train operations.
 
 ## 2. Proposed Solution
