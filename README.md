@@ -51,12 +51,12 @@ The system operates on localized, simulated data representing the following core
 *   **Frontend:** React.js, Tailwind CSS, Gantt Chart Libraries
 *   **Backend:** Python, FastAPI 
 *   **Database:** PostgreSQL (or local SQLite for development)
-*   **AI & Optimization:** Scikit-Learn / XGBoost (Prioritization), Google OR-Tools (Scheduling constraints), Pandas / NumPy (Data Processing)
+*   **AI & Optimization:** Scikit-Learn/XGBoost (Prioritization), Google OR-Tools (Scheduling constraints), Pandas/NumPy (Data Processing)
 
 ## 7. Local Installation & Setup
 1. Clone the repository
 ```bash
-git clone https://github.com/YourUsername/SIH26027.git
+git clone https://github.com/Aapiier/SIH26027.git
 cd SIH26027
 ```
 
@@ -89,7 +89,7 @@ npm start
 ```
 
 ## 8. Usage Instructions
-1. Navigate to http://localhost:3000 to access the control dashboard.
+1. Navigate to https://localhost:3000 to access the control dashboard.
 2. Click "Sync External Data" to fetch the latest synthetic defects from the local TMS, SMMS, and TDMS mock repositories.
 3. Click "Run Optimization Engine" to trigger the AI prioritization and schedule generation against the current COA timetable.
 4. View the unified multi-department maintenance blocks on the interactive visual timeline.
