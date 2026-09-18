@@ -15,8 +15,7 @@ from backend.app.pipeline.feature_engineering_v2 import extract_asset_features, 
 MODEL_DIR = Path(__file__).resolve().parents[1] / "models" / "saved_models"
 PRIMARY_MODEL_PATH = MODEL_DIR / "asset_failure_risk_v3.joblib"
 FALLBACK_MODEL_PATHS = [
-    MODEL_DIR / "asset_failure_risk_final.joblib",
-    MODEL_DIR / "asset_failure_risk_v2.joblib",
+    PRIMARY_MODEL_PATH,
 ]
 
 

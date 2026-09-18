@@ -36,9 +36,7 @@ ROOT_DIR = Path(__file__).resolve().parents[3]
 DATA_PATH = ROOT_DIR / "data" / "synthetic" / "ml_training_samples.csv"
 MODEL_DIR = ROOT_DIR / "backend" / "app" / "models" / "saved_models"
 MODEL_PATH_V3 = MODEL_DIR / "asset_failure_risk_v3.joblib"
-MODEL_PATH_FINAL = MODEL_DIR / "asset_failure_risk_final.joblib"
 METADATA_PATH_V3 = MODEL_DIR / "asset_failure_risk_v3_metadata.json"
-METADATA_PATH_FINAL = MODEL_DIR / "asset_failure_risk_final_metadata.json"
 IMPORTANCE_PATH = MODEL_DIR / "feature_importance.json"
 
 
@@ -280,14 +278,10 @@ def train_and_select_model():
         "metadata": metadata
     }
 
-    # Save to both canonical v3 and final joblib
+    # Save canonical v3 model artifact and metadata
     joblib.dump(artifact, MODEL_PATH_V3)
-    joblib.dump(artifact, MODEL_PATH_FINAL)
 
     with METADATA_PATH_V3.open("w", encoding="utf-8") as f:
-        json.dump(metadata, f, indent=2)
-
-    with METADATA_PATH_FINAL.open("w", encoding="utf-8") as f:
         json.dump(metadata, f, indent=2)
 
     with IMPORTANCE_PATH.open("w", encoding="utf-8") as f:
