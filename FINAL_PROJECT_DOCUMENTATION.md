@@ -146,8 +146,10 @@ SIH26027/
 │   │   ├── pipeline/
 │   │   │   ├── data_quality.py      # Ingestion validation & sanitization
 │   │   │   ├── ingestion.py         # Transactional CSV ingestion service
-│   │   │   ├── feature_engineering.py # Multi-dimensional feature extraction
-│   │   │   ├── ml_model.py          # Gradient Boosting defect risk model
+│   │   │   ├── feature_engineering.py # Request feature extraction
+│   │   │   ├── feature_engineering_v2.py # 12D temporal physical degradation features
+│   │   │   ├── ml_model.py          # Persisted ML failure risk inference service (v2.0)
+│   │   │   ├── train_model.py       # Out-of-time model selection & persistence pipeline
 │   │   │   ├── prioritization.py    # Two-tier safety gate + ML score
 │   │   │   ├── candidate_windows.py # Timetable gap subtraction engine
 │   │   │   ├── bundling.py          # Spatial/temporal/TRD task bundler
@@ -155,6 +157,7 @@ SIH26027/
 │   │   │   ├── validator.py         # Independent Sentinel schedule validator
 │   │   │   ├── reoptimizer.py       # Event-driven disruption re-solver
 │   │   │   └── multi_horizon.py     # 7-day weekly & 30-day monthly planners
+│   │   ├── models/saved_models/     # Persisted joblib model artifacts & SHAP profile
 │   │   ├── routers/                 # REST API endpoints
 │   │   │   ├── ingestion_router.py
 │   │   │   ├── tasks_router.py
@@ -168,7 +171,7 @@ SIH26027/
 │   │   └── services/
 │   │       ├── audit_service.py     # SHA-256 hash chaining & tamper logging
 │   │       └── explanation_service.py # Unscheduled task feasibility explainer
-│   ├── tests/                       # Pytest unit & integration suite (9 tests)
+│   ├── tests/                       # Pytest unit & integration suite (12 tests)
 │   └── requirements.txt
 ├── frontend/                        # React + Vite + Tailwind (Stitch MCP Designed)
 │   ├── src/
@@ -238,19 +241,29 @@ The backend test suite (`backend/tests/`) was executed with Pytest on Python 3.1
 ============================= test session starts =============================
 platform win32 -- Python 3.12.2, pytest-9.1.1, pluggy-1.6.0
 rootdir: C:\rofl\College Documents\Projects\SIH26027
-collected 9 items
+collected 19 items
 
-backend/tests/test_api_e2e.py::test_health_endpoint PASSED               [ 11%]
-backend/tests/test_api_e2e.py::test_tasks_list PASSED                    [ 22%]
-backend/tests/test_api_e2e.py::test_network_stations PASSED              [ 33%]
-backend/tests/test_api_e2e.py::test_metrics_dashboard PASSED             [ 44%]
-backend/tests/test_candidate_windows.py::test_candidate_window_extraction PASSED [ 55%]
-backend/tests/test_ingestion.py::test_ingestion_counts PASSED            [ 66%]
-backend/tests/test_optimizer_and_validator.py::test_optimizer_and_validator_flow PASSED [ 77%]
-backend/tests/test_prioritization.py::test_prioritization_pipeline PASSED [ 88%]
-backend/tests/test_reoptimization.py::test_train_delay_reoptimization PASSED [100%]
+backend/tests/test_api_e2e.py::test_health_endpoint PASSED               [  5%]
+backend/tests/test_api_e2e.py::test_tasks_list PASSED                    [ 10%]
+backend/tests/test_api_e2e.py::test_network_stations PASSED              [ 15%]
+backend/tests/test_api_e2e.py::test_metrics_dashboard PASSED             [ 21%]
+backend/tests/test_benchmark.py::test_optimization_benchmark_run PASSED  [ 26%]
+backend/tests/test_candidate_windows.py::test_candidate_window_extraction PASSED [ 31%]
+backend/tests/test_ingestion.py::test_ingestion_counts PASSED            [ 36%]
+backend/tests/test_optimizer_and_validator.py::test_optimizer_and_validator_flow PASSED [ 42%]
+backend/tests/test_optimizer_edge_cases.py::test_zero_candidate_windows PASSED [ 47%]
+backend/tests/test_optimizer_edge_cases.py::test_empty_maintenance_requests PASSED [ 52%]
+backend/tests/test_optimizer_edge_cases.py::test_exact_fit_window PASSED [ 57%]
+backend/tests/test_optimizer_edge_cases.py::test_physical_track_contention PASSED [ 63%]
+backend/tests/test_pipeline.py::test_full_pipeline_flow PASSED           [ 68%]
+backend/tests/test_pipeline.py::test_validator_catches_overlap PASSED    [ 73%]
+backend/tests/test_prioritization.py::test_prioritization_pipeline PASSED [ 78%]
+backend/tests/test_reoptimization.py::test_train_delay_reoptimization PASSED [ 84%]
+backend/tests/test_validator_negative.py::test_validator_catches_physical_track_collision PASSED [ 89%]
+backend/tests/test_validator_negative.py::test_validator_catches_train_overlap PASSED [ 94%]
+backend/tests/test_validator_negative.py::test_validator_catches_deadline_violation PASSED [100%]
 
-======================== 9 passed in 4.53s ========================
+======================= 19 passed in 6.32s =======================
 ```
 
 ---

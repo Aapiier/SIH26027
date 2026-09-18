@@ -1,6 +1,10 @@
 """
-RailSync AI — Google OR-Tools CP-SAT Optimization Engine
-Formulates and solves the master maintenance block scheduling problem.
+RailSync AI — Google OR-Tools CP-SAT Optimization Engine (v2.0)
+Formulates and solves the master maintenance block scheduling problem with:
+1. Hard Track-Level NoOverlap Constraints for unbundled tasks on the same physical track.
+2. First-Class Multi-Department Shadow Bundling with Synchronized Co-Possession.
+3. Disjunctive Machinery Resource and Transit Routing Buffers.
+4. Comprehensive Metric and Objective Function Breakdown.
 """
 
 from typing import List, Dict, Any, Tuple
@@ -35,19 +39,28 @@ def solve_maintenance_schedule(
     """
     Execute mathematical optimization using Google OR-Tools CP-SAT.
     """
-    requests = db.query(MaintenanceRequest).filter(MaintenanceRequest.status.in_(["PENDING", "UNSCHEDULED"])).all()
+    requests = db.query(MaintenanceRequest).filter(MaintenanceRequest.status != "COMPLETED").all()
     windows = db.query(CandidateWindow).all()
     resources = db.query(Resource).all()
 
     if not requests:
-        return {"status": "NO_TASKS", "scheduled_count": 0, "unscheduled_count": 0}
+        return {
+            "status": "NO_TASKS",
+            "solver_status": "NO_TASKS",
+            "scheduled_tasks": 0,
+            "unscheduled_tasks": 0,
+            "runtime_seconds": 0.0,
+            "objective_breakdown": {}
+        }
 
     # Determine epoch base
     base_epoch = min(r.earliest_start for r in requests)
 
     model = cp_model.CpModel()
 
+    # -------------------------------------------------------------------------
     # 1. Decision Variables per Maintenance Request
+    # -------------------------------------------------------------------------
     task_vars = {}
     for r in requests:
         es = _dt_to_mins(r.earliest_start, base_epoch)
@@ -70,7 +83,7 @@ def solve_maintenance_schedule(
                 "ld": ld
             }
         else:
-            # Deadline already infeasible
+            # Infeasible deadline from outset
             model.Add(present == 0)
             task_vars[r.request_id] = {
                 "request": r,
@@ -83,9 +96,10 @@ def solve_maintenance_schedule(
                 "ld": ld
             }
 
+    # -------------------------------------------------------------------------
     # 2. Window Containment Constraints
-    # For each task, if present, it must be contained in at least one eligible candidate window
-    windows_by_track = {}
+    # -------------------------------------------------------------------------
+    windows_by_track: Dict[str, List[CandidateWindow]] = {}
     for w in windows:
         windows_by_track.setdefault(w.track_id, []).append(w)
 
@@ -108,7 +122,7 @@ def solve_maintenance_schedule(
                 continue
 
             in_w = model.NewBoolVar(f"in_win_{req_id}_{w.window_id}")
-            # Containment: start >= w_start and start + dur <= w_end
+            # Containment: start >= w_start and end <= w_end
             model.Add(tv["start"] >= w_start).OnlyEnforceIf(in_w)
             model.Add(tv["end"] <= w_end).OnlyEnforceIf(in_w)
             in_win_bools.append(in_w)
@@ -119,8 +133,84 @@ def solve_maintenance_schedule(
         else:
             model.Add(tv["present"] == 0)
 
-    # 3. Disjunctive Machinery Constraints (Transit time between tasks)
-    mach_to_tasks = {}
+    # -------------------------------------------------------------------------
+    # 3. First-Class Multi-Department Bundling Formulation
+    # -------------------------------------------------------------------------
+    candidate_bundles = group_compatible_tasks([r.__dict__ for r in requests])
+    bundle_vars = {}
+    bundles_by_task = {r.request_id: [] for r in requests}
+
+    for bundle in candidate_bundles:
+        b_id = bundle["bundle_id"]
+        req_ids = bundle["request_ids"]
+        matching_tvs = [task_vars[rid] for rid in req_ids if rid in task_vars and task_vars[rid]["interval"] is not None]
+
+        if len(matching_tvs) == len(req_ids):
+            bundle_active = model.NewBoolVar(f"bundle_act_{b_id}")
+            bundle_vars[b_id] = {
+                "bundle": bundle,
+                "active_var": bundle_active,
+                "matching_tvs": matching_tvs,
+                "req_ids": req_ids,
+            }
+
+            # If bundle is active, all member tasks must be present
+            for tv in matching_tvs:
+                model.AddImplication(bundle_active, tv["present"])
+
+            # Synchronize start time for all bundled tasks (joint possession start)
+            lead_tv = matching_tvs[0]
+            for other_tv in matching_tvs[1:]:
+                model.Add(other_tv["start"] == lead_tv["start"]).OnlyEnforceIf(bundle_active)
+
+            for rid in req_ids:
+                bundles_by_task[rid].append(bundle_active)
+
+    # Each task can participate in at most one active bundle
+    for rid, b_vars in bundles_by_task.items():
+        if len(b_vars) > 1:
+            model.Add(sum(b_vars) <= 1)
+
+    # -------------------------------------------------------------------------
+    # 4. Physical Track-Level Conflict Constraints (NoOverlap)
+    # -------------------------------------------------------------------------
+    # For tasks on the same track_id, if they are NOT in the same active bundle, they cannot overlap
+    tasks_by_track: Dict[str, List[Dict[str, Any]]] = {}
+    for req_id, tv in task_vars.items():
+        if tv["interval"] is not None:
+            tasks_by_track.setdefault(tv["request"].track_id, []).append(tv)
+
+    for trk_id, tv_list in tasks_by_track.items():
+        for i in range(len(tv_list)):
+            for j in range(i + 1, len(tv_list)):
+                a, b = tv_list[i], tv_list[j]
+                rid_a, rid_b = a["request"].request_id, b["request"].request_id
+
+                # Find any candidate bundles containing BOTH a and b
+                shared_bundles = [
+                    bv["active_var"] for bv in bundle_vars.values()
+                    if rid_a in bv["req_ids"] and rid_b in bv["req_ids"]
+                ]
+
+                a_before_b = model.NewBoolVar(f"trk_{trk_id}_{rid_a}_before_{rid_b}")
+
+                if shared_bundles:
+                    # If co-bundled, they can overlap (synchronized); otherwise no overlap
+                    same_bundle = model.NewBoolVar(f"same_bndl_{rid_a}_{rid_b}")
+                    model.Add(sum(shared_bundles) == 1).OnlyEnforceIf(same_bundle)
+                    model.Add(sum(shared_bundles) == 0).OnlyEnforceIf(same_bundle.Not())
+
+                    model.Add(b["start"] >= a["end"]).OnlyEnforceIf([a_before_b, a["present"], b["present"], same_bundle.Not()])
+                    model.Add(a["start"] >= b["end"]).OnlyEnforceIf([a_before_b.Not(), a["present"], b["present"], same_bundle.Not()])
+                else:
+                    # Pure disjoint track occupancy
+                    model.Add(b["start"] >= a["end"]).OnlyEnforceIf([a_before_b, a["present"], b["present"]])
+                    model.Add(a["start"] >= b["end"]).OnlyEnforceIf([a_before_b.Not(), a["present"], b["present"]])
+
+    # -------------------------------------------------------------------------
+    # 5. Disjunctive Machinery Constraints (Transit time between sections)
+    # -------------------------------------------------------------------------
+    mach_to_tasks: Dict[str, List[Dict[str, Any]]] = {}
     for req_id, tv in task_vars.items():
         for mach in tv["request"].machinery_required or []:
             mach_to_tasks.setdefault(mach, []).append(tv)
@@ -132,41 +222,36 @@ def solve_maintenance_schedule(
                 if a["interval"] is None or b["interval"] is None:
                     continue
 
-                # Estimate transit time based on section distance (default 60 mins buffer)
-                transit_buffer = 60
+                transit_buffer = 60 if a["request"].section_id != b["request"].section_id else 15
                 a_before_b = model.NewBoolVar(f"mach_{mach}_{a['request'].request_id}_before_{b['request'].request_id}")
 
                 model.Add(b["start"] >= a["end"] + transit_buffer).OnlyEnforceIf([a_before_b, a["present"], b["present"]])
                 model.Add(a["start"] >= b["end"] + transit_buffer).OnlyEnforceIf([a_before_b.Not(), a["present"], b["present"]])
 
-    # 4. Multi-Objective Optimization Terms
+    # -------------------------------------------------------------------------
+    # 6. Multi-Objective Terms (Separation of Hard Rules and Soft Preferences)
+    # -------------------------------------------------------------------------
     obj_terms = []
-    
-    # Priority reward (higher priority tasks must be scheduled)
+
+    # Priority reward (higher priority / higher ML risk scheduled first)
     for req_id, tv in task_vars.items():
         p_score = tv["request"].ai_priority_score or 50.0
-        # High reward for scheduling critical/emergency tasks
         obj_terms.append(tv["present"] * int(p_score * 100))
-        
+
         # Penalty for late start
         if tv["start"] is not None:
             obj_terms.append(-1 * (tv["start"] - tv["es"]))
 
-    # Multi-Department Shadow Bundling Reward
-    candidate_bundles = group_compatible_tasks([r.__dict__ for r in requests])
-    for bundle in candidate_bundles:
-        req_ids = bundle["request_ids"]
-        matching_tvs = [task_vars[rid] for rid in req_ids if rid in task_vars and task_vars[rid]["interval"] is not None]
-        if len(matching_tvs) == len(req_ids):
-            bundle_active = model.NewBoolVar(f"bundle_act_{bundle['bundle_id']}")
-            # All tasks in bundle must be present
-            for tv in matching_tvs:
-                model.AddImplication(bundle_active, tv["present"])
-            obj_terms.append(bundle_active * int(bundle["saved_minutes"] * shadow_reward_weight * 50))
+    # Shadow Bundling Reward
+    for b_id, b_info in bundle_vars.items():
+        saved_mins = b_info["bundle"]["saved_minutes"]
+        obj_terms.append(b_info["active_var"] * int(saved_mins * shadow_reward_weight * 50))
 
     model.Maximize(sum(obj_terms))
 
-    # 5. Solver Execution
+    # -------------------------------------------------------------------------
+    # 7. Solver Execution
+    # -------------------------------------------------------------------------
     solver = cp_model.CpSolver()
     solver.parameters.max_time_in_seconds = max_solver_time_s
     solver.parameters.num_search_workers = 8
@@ -176,51 +261,139 @@ def solve_maintenance_schedule(
     solve_status = solver.Solve(model)
     solver_duration_s = (datetime.now() - solver_start).total_seconds()
 
-    # 6. Extract Schedule Output
+    # -------------------------------------------------------------------------
+    # 8. Extract Unified Schedule & First-Class Bundles
+    # -------------------------------------------------------------------------
     now_utc = datetime.now()
     plan_id = f"PLAN-{now_utc.strftime('%Y%m%d%H%M%S%f')}"
     plan_items = []
+    scheduled_tasks_set = set()
+    total_saved_mins = 0
+    active_bundles_count = 0
+    cross_dept_bundle_count = 0
+
+    if solve_status in (cp_model.OPTIMAL, cp_model.FEASIBLE):
+        # 1. Process Active Bundles First
+        for b_id, b_info in bundle_vars.items():
+            if solver.Value(b_info["active_var"]) == 1:
+                b_meta = b_info["bundle"]
+                active_bundles_count += 1
+                if len(b_meta["departments"]) > 1:
+                    cross_dept_bundle_count += 1
+
+                lead_tv = b_info["matching_tvs"][0]
+                st_mins = solver.Value(lead_tv["start"])
+                en_mins = st_mins + b_meta["bundled_duration_mins"]
+                sch_start = _mins_to_dt(st_mins, base_epoch)
+                sch_end = _mins_to_dt(en_mins, base_epoch)
+                total_saved_mins += b_meta["saved_minutes"]
+
+                all_mach = []
+                for r in b_meta["requests"]:
+                    all_mach.extend(r.get("machinery_required") or [])
+                    scheduled_tasks_set.add(r["request_id"])
+
+                item = BlockPlanItem(
+                    item_id=f"{plan_id}-BUNDLE-{b_id}",
+                    plan_id=plan_id,
+                    window_id=f"CW-ALLOC-{b_meta['track_id']}",
+                    section_id=b_meta["section_id"],
+                    track_id=b_meta["track_id"],
+                    scheduled_start=sch_start,
+                    scheduled_end=sch_end,
+                    duration_minutes=b_meta["bundled_duration_mins"],
+                    bundled_task_ids=b_meta["request_ids"],
+                    assigned_resource_ids=list(set(all_mach)),
+                    justification=b_meta["justification"],
+                    validation_status="PASSED",
+                )
+                plan_items.append(item)
+
+        # 2. Process Standalone Scheduled Tasks (not bundled)
+        for req_id, tv in task_vars.items():
+            r = tv["request"]
+            if solver.Value(tv["present"]) == 1 and req_id not in scheduled_tasks_set:
+                st_mins = solver.Value(tv["start"])
+                en_mins = solver.Value(tv["end"])
+                sch_start = _mins_to_dt(st_mins, base_epoch)
+                sch_end = _mins_to_dt(en_mins, base_epoch)
+                scheduled_tasks_set.add(req_id)
+
+                item = BlockPlanItem(
+                    item_id=f"{plan_id}-ITEM-{r.request_id}",
+                    plan_id=plan_id,
+                    window_id=f"CW-ALLOC-{r.track_id}",
+                    section_id=r.section_id,
+                    track_id=r.track_id,
+                    scheduled_start=sch_start,
+                    scheduled_end=sch_end,
+                    duration_minutes=tv["dur"],
+                    bundled_task_ids=[r.request_id],
+                    assigned_resource_ids=r.machinery_required or [],
+                    justification=f"Optimized single-task block for {r.department} {r.defect_type}",
+                    validation_status="PASSED",
+                )
+                plan_items.append(item)
+
+    # Update database request statuses
     scheduled_count = 0
     unscheduled_count = 0
-    total_saved_mins = 0
+    emergency_scheduled = 0
+    critical_scheduled = 0
+    weighted_priority_captured = 0.0
+    weighted_risk_captured = 0.0
+    total_maintenance_mins = 0
 
-    for req_id, tv in task_vars.items():
-        r = tv["request"]
-        if solve_status in (cp_model.OPTIMAL, cp_model.FEASIBLE) and solver.Value(tv["present"]) == 1:
-            st_mins = solver.Value(tv["start"])
-            en_mins = solver.Value(tv["end"])
-            sch_start = _mins_to_dt(st_mins, base_epoch)
-            sch_end = _mins_to_dt(en_mins, base_epoch)
-
-            item = BlockPlanItem(
-                item_id=f"{plan_id}-ITEM-{r.request_id}",
-                plan_id=plan_id,
-                window_id=f"CW-ALLOC-{r.track_id}",
-                section_id=r.section_id,
-                track_id=r.track_id,
-                scheduled_start=sch_start,
-                scheduled_end=sch_end,
-                duration_minutes=tv["dur"],
-                bundled_task_ids=[r.request_id],
-                assigned_resource_ids=r.machinery_required or [],
-                justification=f"Optimized schedule slot for {r.department} {r.defect_type}",
-                validation_status="PASSED",
-            )
-            plan_items.append(item)
+    for r in requests:
+        if r.request_id in scheduled_tasks_set:
             r.status = "SCHEDULED"
             r.unscheduled_reason = None
             scheduled_count += 1
+            total_maintenance_mins += r.duration_minutes
+            weighted_priority_captured += (r.ai_priority_score or 50.0)
+            weighted_risk_captured += (r.ai_risk_score or 0.2)
+            if r.severity == "EMERGENCY":
+                emergency_scheduled += 1
+            elif r.severity == "CRITICAL":
+                critical_scheduled += 1
         else:
             r.status = "UNSCHEDULED"
-            # Set provisional explanation (refined by explanation service)
-            if tv["ld"] - tv["dur"] < tv["es"]:
+            unscheduled_count += 1
+            tv = task_vars.get(r.request_id)
+            if tv and tv["ld"] - tv["dur"] < tv["es"]:
                 r.unscheduled_reason = "Infeasible deadline: duration exceeds available horizon window"
             else:
-                r.unscheduled_reason = "Corridor train traffic congestion: no collision-free gap available"
-            unscheduled_count += 1
+                r.unscheduled_reason = "Corridor train traffic congestion or track possession conflict"
 
-    # 7. Compute Hash for Cryptographic Audit
-    hash_payload = f"{plan_id}:{scheduled_count}:{unscheduled_count}:{solver_duration_s}"
+    # Compute Total Block Duration (actual line possession)
+    total_block_mins = sum(item.duration_minutes for item in plan_items)
+    block_utilization = round((total_maintenance_mins / max(1, total_block_mins)) * 100.0, 1) if total_block_mins > 0 else 0.0
+
+    # -------------------------------------------------------------------------
+    # 9. Objective Function & Metric Breakdown
+    # -------------------------------------------------------------------------
+    objective_breakdown = {
+        "total_scheduled_tasks": scheduled_count,
+        "total_unscheduled_tasks": unscheduled_count,
+        "scheduled_emergency_tasks": emergency_scheduled,
+        "scheduled_critical_tasks": critical_scheduled,
+        "total_maintenance_hours": round(total_maintenance_mins / 60.0, 1),
+        "total_block_hours": round(total_block_mins / 60.0, 1),
+        "block_possession_saved_hours": round(total_saved_mins / 60.0, 1),
+        "block_utilization_pct": block_utilization,
+        "active_bundles_count": active_bundles_count,
+        "cross_department_bundles_count": cross_dept_bundle_count,
+        "weighted_priority_captured": round(weighted_priority_captured, 1),
+        "weighted_risk_captured": round(weighted_risk_captured, 2),
+        "solver_status": solver.StatusName(solve_status),
+        "solver_runtime_s": round(solver_duration_s, 3),
+        "objective_value": solver.ObjectiveValue() if solve_status in (cp_model.OPTIMAL, cp_model.FEASIBLE) else 0.0,
+    }
+
+    # -------------------------------------------------------------------------
+    # 10. Tamper-Evident Plan Hash & Persistence
+    # -------------------------------------------------------------------------
+    hash_payload = f"{plan_id}:{scheduled_count}:{unscheduled_count}:{solver_duration_s}:{total_saved_mins}"
     content_hash = hashlib.sha256(hash_payload.encode()).hexdigest()
 
     block_plan = BlockPlan(
@@ -247,4 +420,5 @@ def solve_maintenance_schedule(
         "scheduled_tasks": scheduled_count,
         "unscheduled_tasks": unscheduled_count,
         "content_hash": content_hash,
+        "objective_breakdown": objective_breakdown,
     }

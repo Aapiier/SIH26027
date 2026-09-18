@@ -36,6 +36,7 @@ export interface MaintenanceRequest {
   speed_restriction_kmph: number;
   machinery_required: string[];
   power_block_required: boolean;
+  elementary_section_id?: string;
   status: 'PENDING' | 'SCHEDULED' | 'UNSCHEDULED' | 'OVERRIDDEN' | 'COMPLETED';
   scenario_tag?: string;
   ai_priority_score?: number;
@@ -78,13 +79,119 @@ export interface DashboardMetrics {
   asset_availability_percentage: number;
   total_maintenance_requests: number;
   scheduled_tasks_count: number;
+  unscheduled_tasks_count: number;
   scheduled_rate_percentage: number;
+  emergency_tasks_count: number;
   critical_emergency_count: number;
+  active_blocks_count: number;
   total_block_possession_hours: number;
   total_saved_possession_minutes: number;
+  total_saved_possession_hours: number;
   multi_department_bundled_blocks: number;
+  cross_dept_bundles_count: number;
   solver_latest_runtime_s: number;
   active_plan_status: string;
+  validation_status: string;
+  plan_id?: string;
+  content_hash?: string;
+  horizon: string;
+  corridor: string;
+  model_version: string;
+}
+
+export interface AssetInfo {
+  asset_id: string;
+  asset_name: string;
+  category: string;
+  department: string;
+  health_index: number;
+  last_inspected_days_ago: number;
+  criticality_weight: number;
+  section_id: string;
+  track_id: string;
+  start_km: number;
+  end_km: number;
+}
+
+export interface AIRiskContext {
+  predicted_failure_risk: number;
+  prediction_horizon: string;
+  prediction_target: string;
+  model_name: string;
+  model_version: string;
+  calibrated_threshold: number;
+  synthetic_notice: string;
+  feature_attributions: Record<string, number>;
+  tier: string;
+  tier_description: string;
+}
+
+export interface TaskExplanation {
+  request_id: string;
+  status: 'SCHEDULED' | 'UNSCHEDULED';
+  explanation: string;
+  root_cause?: string;
+  recommendation?: string;
+  block_id?: string;
+  scheduled_start?: string;
+  scheduled_end?: string;
+  duration_minutes?: number;
+  is_bundled?: boolean;
+  bundled_task_ids?: string[];
+  asset_info?: AssetInfo;
+  ai_risk_context?: AIRiskContext;
+}
+
+export interface BenchmarkMetrics {
+  scheduled_tasks_count: number;
+  unscheduled_tasks_count: number;
+  scheduled_rate_pct: number;
+  scheduled_emergency_count: number;
+  scheduled_critical_count: number;
+  total_tasks_duration_hours: number;
+  total_block_possession_hours: number;
+  block_possession_hours_saved: number;
+  active_bundles_count: number;
+  tasks_in_bundles_count: number;
+  cross_department_bundles_count: number;
+  weighted_priority_captured: number;
+  weighted_risk_captured: number;
+  solver_status: string;
+  solver_runtime_s: number;
+  algorithm_name: string;
+}
+
+export interface BenchmarkResponse {
+  status: string;
+  scenario: string;
+  planning_horizon: string;
+  total_input_requests: number;
+  candidate_windows_available: number;
+  baseline: BenchmarkMetrics;
+  cpsat_optimizer: BenchmarkMetrics;
+  comparison_deltas: {
+    possession_hours_saved_delta: number;
+    possession_reduction_pct: number;
+    bundles_created_delta: number;
+    cross_department_bundles_delta: number;
+    runtime_difference_s: number;
+  };
+}
+
+export interface ValidationVerdict {
+  status: string;
+  validation_verdict: {
+    plan_id: string;
+    overall_verdict: 'PASSED' | 'FAILED';
+    validated_items_count: number;
+    conflicts_detected: number;
+    content_hash: string;
+    details: Array<{
+      item_id: string;
+      status: 'PASSED' | 'FAILED';
+      reasons?: string[];
+    }>;
+  };
 }
 
 export interface AuditLog {

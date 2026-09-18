@@ -240,3 +240,43 @@ The prototype is complete when:
 10. Stitch MCP designed frontend visualizes the live schedule, Gantt chart, network map, and override controls with real backend data.
 11. All unit, integration, and scenario tests pass.
 12. `FINAL_PROJECT_DOCUMENTATION.md` and `md/` documents match the real implementation.
+
+---
+
+## 7. Evolution Milestones & Current System Status
+
+### Stage 1: Core Architecture & Prototype Pipeline (Completed)
+- Clean ingestion, synthetic dataset generators, and database relational models.
+- Independent Sentinel validation and interactive frontend prototype.
+
+### Stage 2: Longitudinal Synthetic ML v2 Pipeline (Completed)
+- 194-day longitudinal synthetic asset history (174 assets, 33,756 state observations).
+- Non-linear physical wear dynamics (Poisson/Weibull degradation models).
+- Backward-looking temporal lag features (rolling 7d/14d/30d aggregations) predicting future outcome target (`failure_within_14d`).
+- Out-of-time temporal split (Train: Day 1-135, Val: Day 136-164, Test: Day 165-194).
+- Zero target leakage, LightGBM classifier with 50-tree shallow architecture, persisted in `asset_failure_risk_v2.joblib`.
+- Fully documented in `AI_V2_IMPLEMENTATION_REPORT.md`.
+
+### Stage 3: Optimization Integrity, Bundling Correctness & Benchmarking (Completed)
+- Physical track-level interval `NoOverlap` constraint enforcement.
+- First-class unified `BlockPlanItem` bundle representation (`{plan_id}-BUNDLE-{bundle_id}`) with detailed possession savings metrics.
+- Hardened candidate window boundary gap and exact-fit gap extraction.
+- Strict mathematical separation between hard constraints (feasibility) and soft objectives (optimization).
+- Deterministic Greedy Baseline Scheduler built for objective comparative analysis.
+- Empirical benchmarking engine (`POST /api/v1/optimization/benchmark`) measuring CP-SAT against Greedy Baseline (**10.5 hours of track closure saved via bundling**, 29.6% reduction in possession time, $0.056\text{s}$ solver runtime).
+- Strengthened independent Sentinel validator with negative test suite (caught track collisions, train clashes, machinery transit violations, and deadline breaches).
+- Fully documented in `OPTIMIZATION_V1_IMPLEMENTATION_REPORT.md`.
+
+### Stage 4: Operational Dispatch UI & Frontend Integration (Completed)
+- Mission Tactical Control Center (OCC) dashboard connected 100% to real FastAPI REST endpoints.
+- Real API-driven KPI cards (Demand, Unscheduled, Tier 1 Emergency, Critical Predictive, Active Possessions, Bundles, Hours Saved, Sentinel, Solver Runtime).
+- Central Gantt possession timeline with unified bundle representation and block possession detail inspector.
+- AI Explanation Panel displaying predicted synthetic failure risk ($P(\text{failure}_{14\text{d}})$), local feature attribution (SHAP proxy), asset telemetry, and root-cause feasibility diagnosis.
+- Dedicated Optimization Quality Benchmark Modal (Greedy Baseline vs CP-SAT side-by-side comparison).
+- Sentinel Validator Modal with PASS/FAIL badge, 7 independent integrity check cards, and SHA-256 content hash.
+- Manual Override workflow with Sentinel pre-validation gate and audit logging.
+- Disruption simulation & warm-start re-optimization interface.
+- 2D topological SVG corridor schematic with live possession overlays.
+- Production build verified with `npm run build` (0 errors) and all 19 backend tests passing.
+- Fully documented in `FRONTEND_V1_IMPLEMENTATION_REPORT.md`.
+

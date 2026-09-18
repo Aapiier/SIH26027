@@ -1,21 +1,35 @@
-import { DashboardMetrics, MaintenanceRequest, BlockPlan, Station, TrackSection, AuditLog } from '../types';
+import {
+  DashboardMetrics,
+  MaintenanceRequest,
+  BlockPlan,
+  Station,
+  TrackSection,
+  AuditLog,
+  TaskExplanation,
+  BenchmarkResponse,
+  ValidationVerdict
+} from '../types';
 
 const API_BASE = '/api/v1';
 
 export async function fetchMetrics(): Promise<DashboardMetrics> {
   const res = await fetch(`${API_BASE}/metrics/dashboard`);
-  if (!res.ok) throw new Error('Failed to fetch metrics');
+  if (!res.ok) throw new Error('Failed to fetch dashboard metrics');
   return res.json();
 }
 
-export async function fetchTasks(department?: string, severity?: string, status?: string): Promise<MaintenanceRequest[]> {
+export async function fetchTasks(
+  department?: string,
+  severity?: string,
+  status?: string
+): Promise<MaintenanceRequest[]> {
   const params = new URLSearchParams();
-  if (department) params.append('department', department);
-  if (severity) params.append('severity', severity);
-  if (status) params.append('status', status);
+  if (department && department !== 'ALL') params.append('department', department);
+  if (severity && severity !== 'ALL') params.append('severity', severity);
+  if (status && status !== 'ALL') params.append('status', status);
 
   const res = await fetch(`${API_BASE}/tasks?${params.toString()}`);
-  if (!res.ok) throw new Error('Failed to fetch tasks');
+  if (!res.ok) throw new Error('Failed to fetch maintenance tasks');
   return res.json();
 }
 
@@ -41,33 +55,51 @@ export async function fetchSections(): Promise<TrackSection[]> {
   return res.json();
 }
 
-export async function triggerSync(): Promise<any> {
-  const res = await fetch(`${API_BASE}/ingestion/sync`, { method: 'POST' });
-  if (!res.ok) throw new Error('Failed to sync data');
-  return res.json();
-}
-
-export async function triggerPrioritization(): Promise<any> {
-  const res = await fetch(`${API_BASE}/tasks/prioritize`, { method: 'POST' });
-  if (!res.ok) throw new Error('Failed to run prioritization');
-  return res.json();
-}
-
-export async function triggerOptimization(horizon: string = 'WEEKLY'): Promise<any> {
-  const res = await fetch(`${API_BASE}/optimization/solve?horizon=${horizon}`, { method: 'POST' });
-  if (!res.ok) throw new Error('Failed to run optimization');
-  return res.json();
-}
-
 export async function fetchAuditLogs(): Promise<AuditLog[]> {
   const res = await fetch(`${API_BASE}/audit`);
   if (!res.ok) throw new Error('Failed to fetch audit logs');
   return res.json();
 }
 
-export async function explainUnscheduled(requestId: string): Promise<any> {
-  const res = await fetch(`${API_BASE}/tasks/${requestId}/explain`);
-  if (!res.ok) throw new Error('Failed to explain task');
+export async function triggerSync(): Promise<any> {
+  const res = await fetch(`${API_BASE}/ingestion/sync`, { method: 'POST' });
+  if (!res.ok) throw new Error('Failed to sync dataset');
+  return res.json();
+}
+
+export async function triggerPrioritization(): Promise<any> {
+  const res = await fetch(`${API_BASE}/tasks/prioritize`, { method: 'POST' });
+  if (!res.ok) throw new Error('Failed to execute AI prioritization');
+  return res.json();
+}
+
+export async function triggerOptimization(horizon: string = 'WEEKLY'): Promise<any> {
+  const res = await fetch(`${API_BASE}/optimization/solve?horizon=${encodeURIComponent(horizon)}`, {
+    method: 'POST'
+  });
+  if (!res.ok) throw new Error('Failed to execute CP-SAT optimizer');
+  return res.json();
+}
+
+export async function fetchBenchmark(horizon: string = 'WEEKLY'): Promise<BenchmarkResponse> {
+  const res = await fetch(`${API_BASE}/optimization/benchmark?horizon=${encodeURIComponent(horizon)}`, {
+    method: 'POST'
+  });
+  if (!res.ok) throw new Error('Failed to execute optimization benchmark');
+  return res.json();
+}
+
+export async function validatePlan(planId: string): Promise<ValidationVerdict> {
+  const res = await fetch(`${API_BASE}/schedules/${encodeURIComponent(planId)}/validate`, {
+    method: 'POST'
+  });
+  if (!res.ok) throw new Error('Failed to execute Sentinel validation');
+  return res.json();
+}
+
+export async function explainTask(requestId: string): Promise<TaskExplanation> {
+  const res = await fetch(`${API_BASE}/tasks/${encodeURIComponent(requestId)}/explain`);
+  if (!res.ok) throw new Error(`Failed to explain task ${requestId}`);
   return res.json();
 }
 
@@ -83,7 +115,26 @@ export async function applyManualOverride(payload: {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
   });
-  if (!res.ok) throw new Error('Failed to apply override');
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Failed to apply override' }));
+    throw new Error(err.detail || 'Failed to apply override');
+  }
+  return res.json();
+}
+
+export async function approveSchedule(planId: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/schedules/${encodeURIComponent(planId)}/approve`, {
+    method: 'POST'
+  });
+  if (!res.ok) throw new Error('Failed to approve schedule');
+  return res.json();
+}
+
+export async function publishSchedule(planId: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/schedules/${encodeURIComponent(planId)}/publish`, {
+    method: 'POST'
+  });
+  if (!res.ok) throw new Error('Failed to publish schedule');
   return res.json();
 }
 
@@ -97,6 +148,9 @@ export async function triggerTrainDelayDisruption(payload: {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
   });
-  if (!res.ok) throw new Error('Failed to report disruption');
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Failed to report disruption' }));
+    throw new Error(err.detail || 'Failed to report disruption');
+  }
   return res.json();
 }

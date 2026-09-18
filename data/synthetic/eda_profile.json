@@ -42,5 +42,11 @@
     "GZB-ALJN": 840,
     "NDLS-GZB": 840
   },
-  "power_blocks_required_count": 28
+  "power_blocks_required_count": 28,
+  "longitudinal_telemetry_count": 33756,
+  "historical_inspections_count": 1118,
+  "historical_interventions_count": 523,
+  "historical_defects_count": 458,
+  "ml_training_samples_count": 9744,
+  "ml_positive_failure_rate": 0.0495
 }

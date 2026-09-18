@@ -19,7 +19,9 @@ from dataset_generation.generators.goods_forecast import generate_goods_forecast
 from dataset_generation.generators.resources import generate_resources
 from dataset_generation.generators.defects import generate_maintenance_requests
 from dataset_generation.generators.scenarios import inject_deterministic_scenarios
+from dataset_generation.generators.longitudinal_history import simulate_longitudinal_asset_history
 from dataset_generation.validators.validate_dataset import validate_dataset_integrity
+from dataset_generation.validators.temporal_validator import validate_temporal_leakage_and_integrity
 from dataset_generation.validators.data_profiler import generate_eda_profile
 
 
@@ -65,7 +67,13 @@ def run_generation(config: DatasetConfig) -> dict:
     # 4. Inject 8 Deterministic Scenarios
     scenarios_meta = inject_deterministic_scenarios(requests, assets, timetable, goods_forecast)
 
-    # 5. Referential Integrity & Quality Validation
+    # 5. Longitudinal Asset History & ML Sample Generation (194 Days Simulation)
+    longitudinal_rng = random.Random(config.seed + 100)
+    telemetry, inspections, interventions, defect_events, ml_samples = simulate_longitudinal_asset_history(
+        assets, simulation_days=194, start_date_str="2026-03-21", rng=longitudinal_rng
+    )
+
+    # 6. Referential Integrity & Quality Validation (Operational Core)
     val_report = validate_dataset_integrity(
         stations, sections, tracks, assets, trains, timetable, goods_forecast, resources, requests
     )
@@ -74,12 +82,27 @@ def run_generation(config: DatasetConfig) -> dict:
         print(f"[!] VALIDATION ERRORS DETECTED: {val_report['errors']}")
         raise ValueError(f"Dataset integrity failed with {val_report['error_count']} errors.")
 
-    # 6. Generate EDA Profile
+    # 7. Strict Temporal Zero-Leakage Validation (ML History)
+    temp_val_report = validate_temporal_leakage_and_integrity(
+        telemetry, defect_events, ml_samples, simulation_days=194
+    )
+
+    if not temp_val_report["passed"]:
+        print(f"[!] TEMPORAL LEAKAGE DETECTED: {temp_val_report['errors']}")
+        raise ValueError(f"Temporal zero-leakage check failed with {temp_val_report['error_count']} violations.")
+
+    # 8. Generate EDA Profile
     eda_report = generate_eda_profile(
         stations, sections, tracks, assets, trains, timetable, goods_forecast, resources, requests
     )
+    eda_report["longitudinal_telemetry_count"] = len(telemetry)
+    eda_report["historical_inspections_count"] = len(inspections)
+    eda_report["historical_interventions_count"] = len(interventions)
+    eda_report["historical_defects_count"] = len(defect_events)
+    eda_report["ml_training_samples_count"] = len(ml_samples)
+    eda_report["ml_positive_failure_rate"] = temp_val_report["positive_rate"]
 
-    # 7. Write CSVs to Output Directory
+    # 9. Write CSVs to Output Directory
     out_dir = config.output_dir
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -93,16 +116,29 @@ def run_generation(config: DatasetConfig) -> dict:
         "goods_forecast.csv": write_csv(out_dir / "goods_forecast.csv", goods_forecast),
         "resources.csv": write_csv(out_dir / "resources.csv", resources),
         "maintenance_requests.csv": write_csv(out_dir / "maintenance_requests.csv", requests),
+        "asset_daily_telemetry.csv": write_csv(out_dir / "asset_daily_telemetry.csv", telemetry),
+        "historical_inspections.csv": write_csv(out_dir / "historical_inspections.csv", inspections),
+        "historical_interventions.csv": write_csv(out_dir / "historical_interventions.csv", interventions),
+        "historical_defects.csv": write_csv(out_dir / "historical_defects.csv", defect_events),
+        "ml_training_samples.csv": write_csv(out_dir / "ml_training_samples.csv", ml_samples),
     }
 
-    # 8. Write Manifest & EDA Metadata
+    # 10. Write Manifest & EDA Metadata
     manifest = {
-        "generator_version": "1.0.0",
+        "generator_version": "2.0.0",
         "generated_at": datetime.now().isoformat(),
         "seed": config.seed,
         "planning_days": config.planning_days,
+        "simulation_days": 194,
         "validation_status": "PASSED",
-        "row_counts": val_report["row_counts"],
+        "temporal_leakage_audit": "ZERO_LEAKAGE_VERIFIED",
+        "row_counts": {**val_report["row_counts"], **{k.replace(".csv", ""): v for k, v in written_files.items()}},
+        "ml_sample_statistics": {
+            "total_samples": temp_val_report["total_samples"],
+            "positive_samples": temp_val_report["positive_samples"],
+            "positive_rate": temp_val_report["positive_rate"],
+            "split_counts": temp_val_report["split_counts"],
+        },
         "written_files": written_files,
         "scenarios_injected": scenarios_meta,
     }
@@ -114,8 +150,10 @@ def run_generation(config: DatasetConfig) -> dict:
         json.dump(eda_report, f, indent=2)
 
     print(f"[+] Successfully generated and validated canonical dataset in: {out_dir}")
-    print(f"[+] Total Requests: {len(requests)} | Total Timetable Rows: {len(timetable)} | Stations: {len(stations)}")
+    print(f"[+] Operational Demands: {len(requests)} | Timetable Entries: {len(timetable)}")
+    print(f"[+] Longitudinal Telemetry: {len(telemetry)} | ML Training Samples: {len(ml_samples)} (Positive Rate: {temp_val_report['positive_rate']:.2%})")
     return manifest
+
 
 
 if __name__ == "__main__":

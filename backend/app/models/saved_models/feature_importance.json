@@ -1,0 +1,75 @@
+{
+  "model_name": "HistGradientBoosting",
+  "target": "failure_within_14d",
+  "test_metrics": {
+    "roc_auc": 0.5336,
+    "pr_auc": 0.0785,
+    "precision": 0.0485,
+    "recall": 0.4615,
+    "f1_score": 0.0878,
+    "f2_score": 0.1708,
+    "brier_score": 0.1717,
+    "threshold": 0.41,
+    "confusion_matrix": [
+      [
+        956,
+        706
+      ],
+      [
+        42,
+        36
+      ]
+    ]
+  },
+  "calibrated_threshold": 0.41,
+  "feature_importance": [
+    {
+      "feature": "asset_criticality",
+      "importance": 0.00276
+    },
+    {
+      "feature": "past_defects_count_90d",
+      "importance": 0.00253
+    },
+    {
+      "feature": "environmental_stress_index_7d",
+      "importance": 0.00161
+    },
+    {
+      "feature": "days_since_last_maintenance",
+      "importance": 0.00046
+    },
+    {
+      "feature": "speed_restriction_active",
+      "importance": 0.0
+    },
+    {
+      "feature": "deferred_maintenance_count",
+      "importance": -0.00092
+    },
+    {
+      "feature": "health_degradation_velocity_30d",
+      "importance": -0.00276
+    },
+    {
+      "feature": "days_since_last_inspection",
+      "importance": -0.00805
+    },
+    {
+      "feature": "cumulative_gmt_tonnage_30d",
+      "importance": -0.00839
+    },
+    {
+      "feature": "health_degradation_velocity_14d",
+      "importance": -0.01172
+    },
+    {
+      "feature": "asset_age_years",
+      "importance": -0.01264
+    },
+    {
+      "feature": "current_health_index",
+      "importance": -0.02218
+    }
+  ]
+}

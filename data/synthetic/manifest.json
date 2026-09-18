@@ -1,9 +1,11 @@
 {
-  "generator_version": "1.0.0",
-  "generated_at": "2026-09-18T20:05:22.000658",
+  "generator_version": "2.0.0",
+  "generated_at": "2026-09-18T21:43:18.950065",
   "seed": 42,
   "planning_days": 7,
+  "simulation_days": 194,
   "validation_status": "PASSED",
+  "temporal_leakage_audit": "ZERO_LEAKAGE_VERIFIED",
   "row_counts": {
     "stations": 8,
     "track_sections": 7,
@@ -13,7 +15,24 @@
     "timetable_entries": 5040,
     "goods_forecasts": 218,
     "resources": 9,
-    "maintenance_requests": 86
+    "maintenance_requests": 86,
+    "timetable": 5040,
+    "goods_forecast": 218,
+    "asset_daily_telemetry": 33756,
+    "historical_inspections": 1118,
+    "historical_interventions": 523,
+    "historical_defects": 458,
+    "ml_training_samples": 9744
+  },
+  "ml_sample_statistics": {
+    "total_samples": 9744,
+    "positive_samples": 482,
+    "positive_rate": 0.0495,
+    "split_counts": {
+      "TRAIN": 6264,
+      "VAL": 1740,
+      "TEST": 1740
+    }
   },
   "written_files": {
     "stations.csv": 8,
@@ -24,7 +43,12 @@
     "timetable.csv": 5040,
     "goods_forecast.csv": 218,
     "resources.csv": 9,
-    "maintenance_requests.csv": 86
+    "maintenance_requests.csv": 86,
+    "asset_daily_telemetry.csv": 33756,
+    "historical_inspections.csv": 1118,
+    "historical_interventions.csv": 523,
+    "historical_defects.csv": 458,
+    "ml_training_samples.csv": 9744
   },
   "scenarios_injected": {
     "scenario_1": "Tri-Department Mega Block on GZB-ALJN",

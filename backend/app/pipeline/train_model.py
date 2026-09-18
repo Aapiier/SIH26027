@@ -1,0 +1,266 @@
+"""
+RailSync AI — Model Training, Evaluation, Selection & Persistence Pipeline (v2.0)
+Trains baseline and candidate classifiers on longitudinal out-of-time splits,
+evaluates genuine future outcome prediction (failure_within_14d), and persists the winning model artifact.
+"""
+
+import os
+import json
+import csv
+from pathlib import Path
+from datetime import datetime
+import numpy as np
+import joblib
+
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import (
+    RandomForestClassifier,
+    GradientBoostingClassifier,
+    HistGradientBoostingClassifier,
+)
+from sklearn.metrics import (
+    roc_auc_score,
+    average_precision_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    fbeta_score,
+    brier_score_loss,
+    confusion_matrix,
+)
+
+from backend.app.pipeline.feature_engineering_v2 import FEATURE_NAMES
+
+ROOT_DIR = Path(__file__).resolve().parents[3]
+DATA_PATH = ROOT_DIR / "data" / "synthetic" / "ml_training_samples.csv"
+MODEL_DIR = ROOT_DIR / "backend" / "app" / "models" / "saved_models"
+MODEL_PATH = MODEL_DIR / "asset_failure_risk_v2.joblib"
+IMPORTANCE_PATH = MODEL_DIR / "feature_importance.json"
+
+
+def load_ml_dataset():
+    """Load and chronologically split the ML training dataset."""
+    if not DATA_PATH.exists():
+        raise FileNotFoundError(f"Training dataset not found at: {DATA_PATH}")
+
+    train_rows = []
+    val_rows = []
+    test_rows = []
+
+    with DATA_PATH.open("r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            split = row["split_tag"]
+            if split == "TRAIN":
+                train_rows.append(row)
+            elif split == "VAL":
+                val_rows.append(row)
+            elif split == "TEST":
+                test_rows.append(row)
+
+    def extract_xy(rows):
+        X = []
+        y = []
+        for r in rows:
+            vec = [float(r[col]) for col in FEATURE_NAMES]
+            X.append(vec)
+            y.append(int(r["failure_within_14d"]))
+        return np.array(X), np.array(y)
+
+    X_train, y_train = extract_xy(train_rows)
+    X_val, y_val = extract_xy(val_rows)
+    X_test, y_test = extract_xy(test_rows)
+
+    return (X_train, y_train), (X_val, y_val), (X_test, y_test)
+
+
+def evaluate_predictions(y_true, y_probs, threshold=0.5):
+    """Compute comprehensive classification and ranking metrics."""
+    y_pred = (y_probs >= threshold).astype(int)
+    roc_auc = float(roc_auc_score(y_true, y_probs))
+    pr_auc = float(average_precision_score(y_true, y_probs))
+    prec = float(precision_score(y_true, y_pred, zero_division=0))
+    rec = float(recall_score(y_true, y_pred, zero_division=0))
+    f1 = float(f1_score(y_true, y_pred, zero_division=0))
+    f2 = float(fbeta_score(y_true, y_pred, beta=2.0, zero_division=0))
+    brier = float(brier_score_loss(y_true, y_probs))
+    cm = confusion_matrix(y_true, y_pred).tolist()
+
+    return {
+        "roc_auc": round(roc_auc, 4),
+        "pr_auc": round(pr_auc, 4),
+        "precision": round(prec, 4),
+        "recall": round(rec, 4),
+        "f1_score": round(f1, 4),
+        "f2_score": round(f2, 4),
+        "brier_score": round(brier, 4),
+        "threshold": round(threshold, 4),
+        "confusion_matrix": cm,
+    }
+
+
+def run_training():
+    """Execute complete model selection, threshold calibration, and serialization."""
+    print("=" * 70)
+    print("RailSync AI — Next-Gen Predictive Asset Risk Model Training")
+    print("=" * 70)
+
+    (X_train, y_train), (X_val, y_val), (X_test, y_test) = load_ml_dataset()
+
+    print(f"[*] Train set: {len(X_train)} samples ({y_train.sum()} positive, {y_train.mean():.2%})")
+    print(f"[*] Val set:   {len(X_val)} samples ({y_val.sum()} positive, {y_val.mean():.2%})")
+    print(f"[*] Test set:  {len(X_test)} samples ({y_test.sum()} positive, {y_test.mean():.2%})")
+
+    # 1. Deterministic Heuristic Baseline
+    def heuristic_predict(X):
+        probs = []
+        for row in X:
+            h_idx, v14, v30, gmt, insp, maint, def_cnt, def_maint, env, age, crit, spd = row
+            score = 0.0
+            if h_idx < 65.0:
+                score += 0.40
+            if insp > 30:
+                score += 0.20
+            if def_maint >= 1:
+                score += 0.25
+            if v14 < -0.3:
+                score += 0.15
+            probs.append(min(1.0, score))
+        return np.array(probs)
+
+    h_val_probs = heuristic_predict(X_val)
+    h_val_metrics = evaluate_predictions(y_val, h_val_probs, threshold=0.35)
+    print(f"\n[1] Heuristic Baseline -> Val PR-AUC: {h_val_metrics['pr_auc']:.4f} | ROC-AUC: {h_val_metrics['roc_auc']:.4f} | F2: {h_val_metrics['f2_score']:.4f}")
+
+    # 2. Scaled Logistic Regression
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_val_scaled = scaler.transform(X_val)
+    X_test_scaled = scaler.transform(X_test)
+
+    lr_model = LogisticRegression(class_weight="balanced", random_state=42, max_iter=1000)
+    lr_model.fit(X_train_scaled, y_train)
+    lr_val_probs = lr_model.predict_proba(X_val_scaled)[:, 1]
+    lr_val_metrics = evaluate_predictions(y_val, lr_val_probs)
+    print(f"[2] Logistic Regression -> Val PR-AUC: {lr_val_metrics['pr_auc']:.4f} | ROC-AUC: {lr_val_metrics['roc_auc']:.4f} | F2: {lr_val_metrics['f2_score']:.4f}")
+
+    # 3. Random Forest Classifier
+    rf_model = RandomForestClassifier(n_estimators=100, max_depth=6, class_weight="balanced", random_state=42)
+    rf_model.fit(X_train, y_train)
+    rf_val_probs = rf_model.predict_proba(X_val)[:, 1]
+    rf_val_metrics = evaluate_predictions(y_val, rf_val_probs)
+    print(f"[3] Random Forest       -> Val PR-AUC: {rf_val_metrics['pr_auc']:.4f} | ROC-AUC: {rf_val_metrics['roc_auc']:.4f} | F2: {rf_val_metrics['f2_score']:.4f}")
+
+    # 4. Gradient Boosting Classifier
+    gb_model = GradientBoostingClassifier(n_estimators=100, learning_rate=0.05, max_depth=4, random_state=42)
+    gb_model.fit(X_train, y_train)
+    gb_val_probs = gb_model.predict_proba(X_val)[:, 1]
+    gb_val_metrics = evaluate_predictions(y_val, gb_val_probs)
+    print(f"[4] Gradient Boosting   -> Val PR-AUC: {gb_val_metrics['pr_auc']:.4f} | ROC-AUC: {gb_val_metrics['roc_auc']:.4f} | F2: {gb_val_metrics['f2_score']:.4f}")
+
+    # 5. HistGradientBoostingClassifier (Zero-dependency modern GBDT)
+    hgb_model = HistGradientBoostingClassifier(max_iter=100, learning_rate=0.05, max_depth=4, class_weight="balanced", random_state=42)
+    hgb_model.fit(X_train, y_train)
+    hgb_val_probs = hgb_model.predict_proba(X_val)[:, 1]
+    hgb_val_metrics = evaluate_predictions(y_val, hgb_val_probs)
+    print(f"[5] HistGradientBoosting-> Val PR-AUC: {hgb_val_metrics['pr_auc']:.4f} | ROC-AUC: {hgb_val_metrics['roc_auc']:.4f} | F2: {hgb_val_metrics['f2_score']:.4f}")
+
+    # Candidate Comparison & Model Selection
+    candidates = {
+        "HistGradientBoosting": (hgb_model, hgb_val_probs, hgb_val_metrics),
+        "GradientBoosting": (gb_model, gb_val_probs, gb_val_metrics),
+        "RandomForest": (rf_model, rf_val_probs, rf_val_metrics),
+        "LogisticRegression": (lr_model, lr_val_probs, lr_val_metrics),
+    }
+
+    # Select best model by Validation PR-AUC + F2 Score
+    best_name = max(candidates.keys(), key=lambda k: candidates[k][2]["pr_auc"] * 0.5 + candidates[k][2]["f2_score"] * 0.5)
+    best_model, best_val_probs, best_val_metrics = candidates[best_name]
+    print(f"\n[+] SELECTED BEST MODEL: {best_name}")
+
+    # Threshold calibration on Validation set (maximizing F2 score for safety recall)
+    best_thresh = 0.5
+    best_f2 = 0.0
+    for th in np.linspace(0.15, 0.70, 56):
+        m = evaluate_predictions(y_val, best_val_probs, threshold=th)
+        if m["f2_score"] > best_f2:
+            best_f2 = m["f2_score"]
+            best_thresh = th
+
+    calibrated_val_metrics = evaluate_predictions(y_val, best_val_probs, threshold=best_thresh)
+    print(f"[+] Calibrated Decision Threshold: {best_thresh:.3f} (Val F2: {calibrated_val_metrics['f2_score']:.4f}, Recall: {calibrated_val_metrics['recall']:.2%})")
+
+    # Final Out-Of-Time Evaluation on Test Set (Strictly evaluated once)
+    if best_name == "LogisticRegression":
+        test_probs = best_model.predict_proba(X_test_scaled)[:, 1]
+    else:
+        test_probs = best_model.predict_proba(X_test)[:, 1]
+
+    test_metrics = evaluate_predictions(y_test, test_probs, threshold=best_thresh)
+
+    # Compute Feature Importances (Native or Permutation)
+    if hasattr(best_model, "feature_importances_"):
+        raw_importances = best_model.feature_importances_
+    else:
+        # Fallback for HistGradientBoosting
+        from sklearn.inspection import permutation_importance
+        perm_res = permutation_importance(best_model, X_val, y_val, n_repeats=5, random_state=42)
+        raw_importances = perm_res.importances_mean
+
+    importance_list = [
+        {"feature": name, "importance": round(float(imp), 5)}
+        for name, imp in zip(FEATURE_NAMES, raw_importances)
+    ]
+    importance_list.sort(key=lambda x: x["importance"], reverse=True)
+
+    print("\n" + "=" * 70)
+    print("FINAL HELD-OUT TEST PERFORMANCE")
+    print("=" * 70)
+    print(f"ROC-AUC:   {test_metrics['roc_auc']:.4f}")
+    print(f"PR-AUC:    {test_metrics['pr_auc']:.4f}")
+    print(f"Precision: {test_metrics['precision']:.4f}")
+    print(f"Recall:    {test_metrics['recall']:.4f}")
+    print(f"F1-Score:  {test_metrics['f1_score']:.4f}")
+    print(f"F2-Score:  {test_metrics['f2_score']:.4f}")
+    print(f"Brier:     {test_metrics['brier_score']:.4f}")
+    print(f"Confusion: {test_metrics['confusion_matrix']}")
+
+    # Save Feature Importance JSON
+    MODEL_DIR.mkdir(parents=True, exist_ok=True)
+    with IMPORTANCE_PATH.open("w", encoding="utf-8") as f:
+        json.dump(
+            {
+                "model_name": best_name,
+                "target": "failure_within_14d",
+                "test_metrics": test_metrics,
+                "calibrated_threshold": round(best_thresh, 4),
+                "feature_importance": importance_list,
+            },
+            f,
+            indent=2
+        )
+
+    # Save Model Artifact via Joblib
+    artifact = {
+        "model": best_model,
+        "scaler": scaler if best_name == "LogisticRegression" else None,
+        "model_name": best_name,
+        "version": "2.0.0",
+        "trained_at_utc": datetime.now().isoformat(),
+        "feature_schema": FEATURE_NAMES,
+        "calibrated_threshold": round(best_thresh, 4),
+        "validation_metrics": calibrated_val_metrics,
+        "test_metrics": test_metrics,
+        "baseline_val_metrics": h_val_metrics,
+    }
+
+    joblib.dump(artifact, MODEL_PATH)
+    print(f"\n[+] Saved persisted model artifact to: {MODEL_PATH}")
+    print(f"[+] Saved feature importance profile to: {IMPORTANCE_PATH}")
+
+    return artifact
+
+
+if __name__ == "__main__":
+    run_training()

@@ -1,6 +1,6 @@
 """
-RailSync AI — Two-Tier Priority & Intelligence Engine
-Combines Deterministic Safety Rules (Tier 1) with ML Escalation Risk Scoring (Tier 2).
+RailSync AI — Two-Tier Priority & Intelligence Engine (v2.0)
+Combines Deterministic G&SR Safety Rules (Tier 1) with Pre-Trained ML Failure Risk Predictions (Tier 2).
 """
 
 from typing import Dict, List, Any
@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from backend.app.models.db_models import MaintenanceRequest, Asset
 from backend.app.pipeline.ml_model import DefectRiskPredictor
 
-# Global singleton predictor instance
+# Global singleton predictor instance loading persisted .joblib artifact
 _predictor = DefectRiskPredictor()
 
 
@@ -19,11 +19,6 @@ def run_prioritization_pipeline(db: Session) -> List[Dict[str, Any]]:
     requests = db.query(MaintenanceRequest).all()
     assets = db.query(Asset).all()
     assets_by_id = {a.asset_id: a.__dict__ for a in assets}
-
-    # Train model if not yet trained
-    req_dicts = [r.__dict__ for r in requests]
-    if not _predictor.is_trained:
-        _predictor.train_on_synthetic_pool(req_dicts, assets_by_id)
 
     results = []
 
@@ -43,7 +38,7 @@ def run_prioritization_pipeline(db: Session) -> List[Dict[str, Any]]:
         }
 
         # ---------------------------------------------------------------------
-        # Tier 1: Deterministic Hard Safety Gates
+        # Tier 1: Deterministic Hard Safety Gates (G&SR Safety Rules)
         # ---------------------------------------------------------------------
         is_emergency = (
             req.severity == "EMERGENCY" or 
@@ -57,13 +52,15 @@ def run_prioritization_pipeline(db: Session) -> List[Dict[str, Any]]:
         ml_risk, attribution = _predictor.predict_risk(req_dict, ast_dict)
 
         if is_emergency:
+            # Deterministic override for emergencies (ML does not downgrade safety)
             priority_score = 98.0
             urgency_level = "CRITICAL_EMERGENCY"
         elif is_critical:
-            priority_score = max(80.0, 75.0 + (ml_risk * 20.0))
+            # Tier 1.5: Critical defects scaled by ML risk [80.0 to 95.0]
+            priority_score = round(max(80.0, 75.0 + (ml_risk * 20.0)), 1)
             urgency_level = "HIGH_PRIORITY"
         else:
-            # Tier 2: ML-Weighted Priority Score (0 to 75)
+            # Tier 2: ML-Weighted Priority Score (0 to 75.0)
             priority_score = round(ml_risk * 75.0, 1)
             urgency_level = "MEDIUM_PRIORITY" if priority_score >= 45.0 else "ROUTINE_SCHEDULE"
 
@@ -81,6 +78,7 @@ def run_prioritization_pipeline(db: Session) -> List[Dict[str, Any]]:
             "ai_risk_score": ml_risk,
             "ai_urgency_level": urgency_level,
             "feature_attribution": attribution,
+            "model_version": _predictor.version,
         })
 
     db.commit()
