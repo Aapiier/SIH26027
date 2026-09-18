@@ -1,7 +1,7 @@
 """
-RailSync AI — Model Training, Evaluation, Selection & Persistence Pipeline (v2.0)
+RailSync AI — Model Training, Out-of-Time Evaluation, Selection & Persistence Pipeline (v3.0)
 Trains baseline and candidate classifiers on longitudinal out-of-time splits,
-evaluates genuine future outcome prediction (failure_within_14d), and persists the winning model artifact.
+evaluates genuine future outcome prediction (failure_within_14d), and persists the canonical model artifact.
 """
 
 import os
@@ -35,7 +35,10 @@ from backend.app.pipeline.feature_engineering_v2 import FEATURE_NAMES
 ROOT_DIR = Path(__file__).resolve().parents[3]
 DATA_PATH = ROOT_DIR / "data" / "synthetic" / "ml_training_samples.csv"
 MODEL_DIR = ROOT_DIR / "backend" / "app" / "models" / "saved_models"
-MODEL_PATH = MODEL_DIR / "asset_failure_risk_v2.joblib"
+MODEL_PATH_V3 = MODEL_DIR / "asset_failure_risk_v3.joblib"
+MODEL_PATH_FINAL = MODEL_DIR / "asset_failure_risk_final.joblib"
+METADATA_PATH_V3 = MODEL_DIR / "asset_failure_risk_v3_metadata.json"
+METADATA_PATH_FINAL = MODEL_DIR / "asset_failure_risk_final_metadata.json"
 IMPORTANCE_PATH = MODEL_DIR / "feature_importance.json"
 
 
@@ -72,7 +75,7 @@ def load_ml_dataset():
     X_val, y_val = extract_xy(val_rows)
     X_test, y_test = extract_xy(test_rows)
 
-    return (X_train, y_train), (X_val, y_val), (X_test, y_test)
+    return (X_train, y_train), (X_val, y_val), (X_test, y_test), (train_rows, val_rows, test_rows)
 
 
 def evaluate_predictions(y_true, y_probs, threshold=0.5):
@@ -100,23 +103,27 @@ def evaluate_predictions(y_true, y_probs, threshold=0.5):
     }
 
 
-def run_training():
-    """Execute complete model selection, threshold calibration, and serialization."""
+def train_and_select_model():
+    """Train candidate models, perform temporal validation selection, and persist artifact."""
     print("=" * 70)
-    print("RailSync AI — Next-Gen Predictive Asset Risk Model Training")
+    print("RailSync AI — Predictive Asset Risk Model Training & Benchmarking (v3.0)")
     print("=" * 70)
 
-    (X_train, y_train), (X_val, y_val), (X_test, y_test) = load_ml_dataset()
+    (X_train, y_train), (X_val, y_val), (X_test, y_test), (train_rows, val_rows, test_rows) = load_ml_dataset()
 
-    print(f"[*] Train set: {len(X_train)} samples ({y_train.sum()} positive, {y_train.mean():.2%})")
-    print(f"[*] Val set:   {len(X_val)} samples ({y_val.sum()} positive, {y_val.mean():.2%})")
-    print(f"[*] Test set:  {len(X_test)} samples ({y_test.sum()} positive, {y_test.mean():.2%})")
+    print(f"[*] Train set: {len(X_train)} samples ({sum(y_train)} positive, {sum(y_train)/len(X_train):.2%})")
+    print(f"[*] Val set:   {len(X_val)} samples ({sum(y_val)} positive, {sum(y_val)/len(X_val):.2%})")
+    print(f"[*] Test set:  {len(X_test)} samples ({sum(y_test)} positive, {sum(y_test)/len(X_test):.2%})")
 
-    # 1. Deterministic Heuristic Baseline
+    # 1. Deterministic Non-ML Heuristic Baseline
     def heuristic_predict(X):
         probs = []
         for row in X:
-            h_idx, v14, v30, gmt, insp, maint, def_cnt, def_maint, env, age, crit, spd = row
+            h_idx = row[0]       # current_health_index
+            v14 = row[1]         # health_degradation_velocity_14d
+            insp = row[4]        # days_since_last_inspection
+            def_maint = row[7]   # deferred_maintenance_count
+
             score = 0.0
             if h_idx < 65.0:
                 score += 0.40
@@ -131,6 +138,8 @@ def run_training():
 
     h_val_probs = heuristic_predict(X_val)
     h_val_metrics = evaluate_predictions(y_val, h_val_probs, threshold=0.35)
+    h_test_probs = heuristic_predict(X_test)
+    h_test_metrics = evaluate_predictions(y_test, h_test_probs, threshold=0.35)
     print(f"\n[1] Heuristic Baseline -> Val PR-AUC: {h_val_metrics['pr_auc']:.4f} | ROC-AUC: {h_val_metrics['roc_auc']:.4f} | F2: {h_val_metrics['f2_score']:.4f}")
 
     # 2. Scaled Logistic Regression
@@ -159,7 +168,7 @@ def run_training():
     gb_val_metrics = evaluate_predictions(y_val, gb_val_probs)
     print(f"[4] Gradient Boosting   -> Val PR-AUC: {gb_val_metrics['pr_auc']:.4f} | ROC-AUC: {gb_val_metrics['roc_auc']:.4f} | F2: {gb_val_metrics['f2_score']:.4f}")
 
-    # 5. HistGradientBoostingClassifier (Zero-dependency modern GBDT)
+    # 5. HistGradientBoostingClassifier (Modern zero-dependency GBDT)
     hgb_model = HistGradientBoostingClassifier(max_iter=100, learning_rate=0.05, max_depth=4, class_weight="balanced", random_state=42)
     hgb_model.fit(X_train, y_train)
     hgb_val_probs = hgb_model.predict_proba(X_val)[:, 1]
@@ -168,15 +177,15 @@ def run_training():
 
     # Candidate Comparison & Model Selection
     candidates = {
-        "HistGradientBoosting": (hgb_model, hgb_val_probs, hgb_val_metrics),
-        "GradientBoosting": (gb_model, gb_val_probs, gb_val_metrics),
-        "RandomForest": (rf_model, rf_val_probs, rf_val_metrics),
-        "LogisticRegression": (lr_model, lr_val_probs, lr_val_metrics),
+        "HistGradientBoosting": (hgb_model, hgb_val_probs, hgb_val_metrics, None),
+        "GradientBoosting": (gb_model, gb_val_probs, gb_val_metrics, None),
+        "RandomForest": (rf_model, rf_val_probs, rf_val_metrics, None),
+        "LogisticRegression": (lr_model, lr_val_probs, lr_val_metrics, scaler),
     }
 
     # Select best model by Validation PR-AUC + F2 Score
     best_name = max(candidates.keys(), key=lambda k: candidates[k][2]["pr_auc"] * 0.5 + candidates[k][2]["f2_score"] * 0.5)
-    best_model, best_val_probs, best_val_metrics = candidates[best_name]
+    best_model, best_val_probs, best_val_metrics, best_scaler = candidates[best_name]
     print(f"\n[+] SELECTED BEST MODEL: {best_name}")
 
     # Threshold calibration on Validation set (maximizing F2 score for safety recall)
@@ -192,7 +201,7 @@ def run_training():
     print(f"[+] Calibrated Decision Threshold: {best_thresh:.3f} (Val F2: {calibrated_val_metrics['f2_score']:.4f}, Recall: {calibrated_val_metrics['recall']:.2%})")
 
     # Final Out-Of-Time Evaluation on Test Set (Strictly evaluated once)
-    if best_name == "LogisticRegression":
+    if best_scaler is not None:
         test_probs = best_model.predict_proba(X_test_scaled)[:, 1]
     else:
         test_probs = best_model.predict_proba(X_test)[:, 1]
@@ -203,7 +212,6 @@ def run_training():
     if hasattr(best_model, "feature_importances_"):
         raw_importances = best_model.feature_importances_
     else:
-        # Fallback for HistGradientBoosting
         from sklearn.inspection import permutation_importance
         perm_res = permutation_importance(best_model, X_val, y_val, n_repeats=5, random_state=42)
         raw_importances = perm_res.importances_mean
@@ -226,41 +234,71 @@ def run_training():
     print(f"Brier:     {test_metrics['brier_score']:.4f}")
     print(f"Confusion: {test_metrics['confusion_matrix']}")
 
-    # Save Feature Importance JSON
-    MODEL_DIR.mkdir(parents=True, exist_ok=True)
-    with IMPORTANCE_PATH.open("w", encoding="utf-8") as f:
-        json.dump(
-            {
-                "model_name": best_name,
-                "target": "failure_within_14d",
-                "test_metrics": test_metrics,
-                "calibrated_threshold": round(best_thresh, 4),
-                "feature_importance": importance_list,
-            },
-            f,
-            indent=2
-        )
-
-    # Save Model Artifact via Joblib
-    artifact = {
-        "model": best_model,
-        "scaler": scaler if best_name == "LogisticRegression" else None,
-        "model_name": best_name,
-        "version": "2.0.0",
-        "trained_at_utc": datetime.now().isoformat(),
+    # Build Comprehensive Metadata
+    metadata = {
+        "model_name": "HistGradientBoosting GBDT",
+        "model_class": best_model.__class__.__name__,
+        "version": "3.0.0-longitudinal",
+        "trained_at_utc": datetime.utcnow().isoformat(),
+        "training_seed": 42,
         "feature_schema": FEATURE_NAMES,
+        "target_definition": "failure_within_14d (Simulated failure-related event within next 14 days)",
+        "dataset_statistics": {
+            "total_samples": len(X_train) + len(X_val) + len(X_test),
+            "train_samples": len(X_train),
+            "val_samples": len(X_val),
+            "test_samples": len(X_test),
+            "train_positive_rate": round(float(sum(y_train) / len(X_train)), 4),
+            "val_positive_rate": round(float(sum(y_val) / len(X_val)), 4),
+            "test_positive_rate": round(float(sum(y_test) / len(X_test)), 4),
+        },
         "calibrated_threshold": round(best_thresh, 4),
+        "heuristic_baseline_metrics": {
+            "val": h_val_metrics,
+            "test": h_test_metrics
+        },
         "validation_metrics": calibrated_val_metrics,
         "test_metrics": test_metrics,
-        "baseline_val_metrics": h_val_metrics,
+        "feature_importances": importance_list,
+        "domain_interpretation": "Predicted synthetic asset failure risk over next 14 days used for decision-support maintenance ranking."
     }
 
-    joblib.dump(artifact, MODEL_PATH)
-    print(f"\n[+] Saved persisted model artifact to: {MODEL_PATH}")
+    # Persist Artifacts
+    MODEL_DIR.mkdir(parents=True, exist_ok=True)
+    
+    artifact = {
+        "model": best_model,
+        "scaler": best_scaler,
+        "model_name": "HistGradientBoosting GBDT",
+        "model_class": best_model.__class__.__name__,
+        "version": "3.0.0-longitudinal",
+        "trained_at_utc": metadata["trained_at_utc"],
+        "calibrated_threshold": best_thresh,
+        "feature_schema": FEATURE_NAMES,
+        "validation_metrics": calibrated_val_metrics,
+        "test_metrics": test_metrics,
+        "metadata": metadata
+    }
+
+    # Save to both canonical v3 and final joblib
+    joblib.dump(artifact, MODEL_PATH_V3)
+    joblib.dump(artifact, MODEL_PATH_FINAL)
+
+    with METADATA_PATH_V3.open("w", encoding="utf-8") as f:
+        json.dump(metadata, f, indent=2)
+
+    with METADATA_PATH_FINAL.open("w", encoding="utf-8") as f:
+        json.dump(metadata, f, indent=2)
+
+    with IMPORTANCE_PATH.open("w", encoding="utf-8") as f:
+        json.dump(importance_list, f, indent=2)
+
+    print(f"\n[+] Saved persisted model artifact to: {MODEL_PATH_V3}")
+    print(f"[+] Saved metadata specification to:    {METADATA_PATH_V3}")
     print(f"[+] Saved feature importance profile to: {IMPORTANCE_PATH}")
 
-    return artifact
+    return metadata
 
 
 if __name__ == "__main__":
-    run_training()
+    train_and_select_model()

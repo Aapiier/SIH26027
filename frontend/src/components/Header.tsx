@@ -68,7 +68,7 @@ export const Header: React.FC<HeaderProps> = ({
             <p className="text-xs text-[#94a3b8] flex items-center gap-2">
               <span>Corridor: <strong className="text-[#cbd5e1]">{metrics?.corridor || 'Bilaspur - Nagpur (BSP-NGP)'}</strong></span>
               <span className="text-[#475569]">•</span>
-              <span>Model: <strong className="text-[#60a5fa]">{metrics?.model_version || 'v2.0.0 LightGBM (14d Risk)'}</strong></span>
+              <span>Model: <strong className="text-[#60a5fa]">{metrics?.model_version || 'HistGradientBoosting GBDT v3.0 (14d Risk)'}</strong></span>
             </p>
           </div>
         </div>

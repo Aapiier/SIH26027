@@ -114,11 +114,11 @@ export const AIExplanationPanel: React.FC<AIExplanationPanelProps> = ({
               <div className="text-xs space-y-1 font-mono">
                 <div className="flex justify-between">
                   <span className="text-[#64748b]">Engine:</span>
-                  <span className="text-[#93c5fd] font-semibold">{ai?.model_name || 'LightGBM Classifier'}</span>
+                  <span className="text-[#93c5fd] font-semibold">{ai?.model_name || 'HistGradientBoosting GBDT'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-[#64748b]">Model Version:</span>
-                  <span className="text-[#cbd5e1]">{ai?.model_version || '2.0.0'}</span>
+                  <span className="text-[#cbd5e1]">{ai?.model_version || 'v3.0'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-[#64748b]">Horizon:</span>
