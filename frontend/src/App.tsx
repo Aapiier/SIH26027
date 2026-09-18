@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Header } from './components/Header';
-import { KPICards } from './components/KPICards';
-import { NetworkSchematicMap } from './components/NetworkSchematicMap';
-import { InteractiveGantt } from './components/InteractiveGantt';
-import { TaskQueue } from './components/TaskQueue';
-import { AIExplanationPanel } from './components/AIExplanationPanel';
+import { Sidebar, NavTab } from './components/Sidebar';
+import { TopHeader } from './components/TopHeader';
+import { OverviewView } from './components/views/OverviewView';
+import { MaintenanceView } from './components/views/MaintenanceView';
+import { BlockPlanView } from './components/views/BlockPlanView';
+import { NetworkView } from './components/views/NetworkView';
+import { DisruptionsView } from './components/views/DisruptionsView';
+import { AuditTrailView } from './components/views/AuditTrailView';
+import { TaskDetailDrawer } from './components/views/TaskDetailDrawer';
 import { BenchmarkModal } from './components/BenchmarkModal';
 import { ValidatorModal } from './components/ValidatorModal';
 import { OverrideModal } from './components/OverrideModal';
-import { DisruptionModal } from './components/DisruptionModal';
-import { AuditTrail } from './components/AuditTrail';
+import { HelpModal } from './components/HelpModal';
 
 import {
   fetchMetrics,
@@ -18,8 +20,6 @@ import {
   fetchStations,
   fetchSections,
   fetchAuditLogs,
-  triggerSync,
-  triggerPrioritization,
   triggerOptimization,
   explainTask,
   applyManualOverride,
@@ -38,27 +38,30 @@ import {
   TaskExplanation
 } from './types';
 
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { AlertCircle, RefreshCw, Train } from 'lucide-react';
 
 export const App: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<NavTab>('overview');
+  
+  // Real API State
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [tasks, setTasks] = useState<MaintenanceRequest[]>([]);
   const [plan, setPlan] = useState<BlockPlan | null>(null);
   const [stations, setStations] = useState<Station[]>([]);
   const [sections, setSections] = useState<TrackSection[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
-  
-  const [selectedHorizon, setSelectedHorizon] = useState<string>('WEEKLY');
+
   const [loading, setLoading] = useState<boolean>(false);
   const [initialLoading, setInitialLoading] = useState<boolean>(true);
   const [backendError, setBackendError] = useState<string | null>(null);
 
-  // Modals state
-  const [selectedExplanation, setSelectedExplanation] = useState<TaskExplanation | null>(null);
+  // Modals & Drawers State
+  const [selectedTaskExplanation, setSelectedTaskExplanation] = useState<TaskExplanation | null>(null);
+  const [selectedTaskObj, setSelectedTaskObj] = useState<MaintenanceRequest | null>(null);
   const [selectedOverrideItem, setSelectedOverrideItem] = useState<BlockPlanItem | null>(null);
   const [isBenchmarkOpen, setIsBenchmarkOpen] = useState<boolean>(false);
   const [isValidatorOpen, setIsValidatorOpen] = useState<boolean>(false);
-  const [isDisruptionOpen, setIsDisruptionOpen] = useState<boolean>(false);
+  const [isHelpOpen, setIsHelpOpen] = useState<boolean>(false);
 
   const loadData = async () => {
     try {
@@ -78,7 +81,7 @@ export const App: React.FC = () => {
       setSections(sec);
       setAuditLogs(a);
     } catch (err: any) {
-      console.error('Error loading dashboard data:', err);
+      console.error('Error loading operational data:', err);
       setBackendError(err.message || 'RailSync backend service unavailable. Please check API server.');
     } finally {
       setInitialLoading(false);
@@ -89,48 +92,27 @@ export const App: React.FC = () => {
     loadData();
   }, []);
 
-  const handleSync = async () => {
-    setLoading(true);
-    try {
-      await triggerSync();
-      await loadData();
-    } catch (err: any) {
-      alert(`Sync failed: ${err.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handlePrioritize = async () => {
-    setLoading(true);
-    try {
-      await triggerPrioritization();
-      await loadData();
-    } catch (err: any) {
-      alert(`Prioritization failed: ${err.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleOptimize = async (horizon: string) => {
+  const handleOptimize = async (horizon: string = 'WEEKLY') => {
     setLoading(true);
     try {
       await triggerOptimization(horizon);
       await loadData();
     } catch (err: any) {
-      alert(`CP-SAT optimization failed: ${err.message}`);
+      alert(`Optimization failed: ${err.message}`);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleExplain = async (taskId: string) => {
+  const handleSelectTask = async (taskId: string) => {
+    const foundTask = tasks.find(t => t.request_id === taskId) || null;
+    setSelectedTaskObj(foundTask);
     try {
       const exp = await explainTask(taskId);
-      setSelectedExplanation(exp);
+      setSelectedTaskExplanation(exp);
     } catch (err) {
-      console.error('Explain error:', err);
+      console.error('Task explanation load error:', err);
+      setSelectedTaskExplanation(null);
     }
   };
 
@@ -158,7 +140,7 @@ export const App: React.FC = () => {
     try {
       await publishSchedule(plan.plan_id);
       await loadData();
-      alert(`Schedule ${plan.plan_id} successfully published to live sectional controllers.`);
+      alert(`Schedule ${plan.plan_id} successfully published to divisional train controllers.`);
     } catch (err: any) {
       alert(`Publish failed: ${err.message}`);
     } finally {
@@ -166,87 +148,134 @@ export const App: React.FC = () => {
     }
   };
 
+  // Urgent Count for Sidebar Badge
+  const urgentCount = tasks.filter(
+    t =>
+      t.severity === 'EMERGENCY' ||
+      ['RAIL_FRACTURE_RISK', 'POINT_MACHINE_DETECTION_FAILURE', 'OHE_CANTILEVER_FLASH_BURN'].includes(t.defect_type)
+  ).length;
+
   if (initialLoading) {
     return (
-      <div className="min-h-screen bg-[#0b0f17] text-[#dfe2ee] flex flex-col items-center justify-center space-y-4">
-        <div className="w-10 h-10 border-4 border-[#3b82f6] border-t-transparent rounded-full animate-spin" />
-        <p className="text-sm font-mono text-[#94a3b8]">Initializing RailSync AI Control Center...</p>
+      <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col items-center justify-center space-y-4">
+        <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-lg animate-bounce">
+          <Train className="w-6 h-6" />
+        </div>
+        <div className="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin" />
+        <p className="text-xs font-semibold text-slate-400 tracking-wide">
+          Loading RailSync Maintenance Operations Center...
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0b0f17] text-[#dfe2ee] flex flex-col font-sans">
-      {/* Global Header */}
-      <Header
-        metrics={metrics}
-        onSync={handleSync}
-        onPrioritize={handlePrioritize}
-        onOptimize={handleOptimize}
-        onBenchmarkClick={() => setIsBenchmarkOpen(true)}
-        onValidationClick={() => setIsValidatorOpen(true)}
-        onDisruptionClick={() => setIsDisruptionOpen(true)}
-        onApprovePublish={handleApprovePublish}
-        selectedHorizon={selectedHorizon}
-        onHorizonChange={setSelectedHorizon}
-        loading={loading}
+    <div className="min-h-screen bg-slate-50 text-slate-800 flex font-sans antialiased">
+      {/* Persistent Left Sidebar */}
+      <Sidebar
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        onOpenHelp={() => setIsHelpOpen(true)}
+        urgentCount={urgentCount}
       />
 
-      {/* Backend Error Banner */}
-      {backendError && (
-        <div className="bg-rose-950/80 border-b border-rose-800 px-4 py-2.5 text-xs text-rose-300 flex items-center justify-between">
-          <div className="flex items-center gap-2 max-w-5xl mx-auto w-full">
-            <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
-            <span><strong>Backend Warning:</strong> {backendError}</span>
-          </div>
-          <button
-            onClick={loadData}
-            className="px-3 py-1 bg-rose-900/60 hover:bg-rose-800 rounded font-semibold text-white transition flex items-center gap-1"
-          >
-            <RefreshCw className="w-3 h-3" /> Retry
-          </button>
-        </div>
-      )}
-
       {/* Main Operations Canvas */}
-      <main className="flex-1 p-3 md:p-5 space-y-4 max-w-[1720px] w-full mx-auto">
-        {/* KPI Telemetry Pods */}
-        <KPICards metrics={metrics} />
-
-        {/* 2D Topological Corridor Map */}
-        <NetworkSchematicMap
-          stations={stations}
-          sections={sections}
-          plan={plan}
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
+        {/* Top Header */}
+        <TopHeader
+          activeTab={activeTab}
+          metrics={metrics}
+          onRefresh={loadData}
+          loading={loading}
         />
 
-        {/* Central Gantt Possession Timeline */}
-        <InteractiveGantt
-          plan={plan}
-          tasks={tasks}
-          onOverrideClick={item => setSelectedOverrideItem(item)}
-        />
+        {/* Backend Warning Banner */}
+        {backendError && (
+          <div className="bg-red-50 border-b border-red-200 px-6 py-2.5 text-xs text-red-700 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+              <span><strong>Backend Communication Warning:</strong> {backendError}</span>
+            </div>
+            <button
+              onClick={loadData}
+              className="px-2.5 py-1 bg-white hover:bg-red-100 border border-red-200 rounded font-semibold text-red-800 transition flex items-center gap-1"
+            >
+              <RefreshCw className="w-3 h-3" /> Retry
+            </button>
+          </div>
+        )}
 
-        {/* Maintenance Queue & AI Prioritization */}
-        <TaskQueue
-          tasks={tasks}
-          onExplainClick={handleExplain}
-        />
+        {/* Active Page View */}
+        <main className="flex-1 p-6 md:p-8">
+          {activeTab === 'overview' && (
+            <OverviewView
+              metrics={metrics}
+              tasks={tasks}
+              plan={plan}
+              onNavigate={setActiveTab}
+              onSelectTask={handleSelectTask}
+            />
+          )}
 
-        {/* Cryptographic Audit Trail */}
-        <AuditTrail logs={auditLogs} />
-      </main>
+          {activeTab === 'maintenance' && (
+            <MaintenanceView
+              tasks={tasks}
+              onSelectTask={handleSelectTask}
+              onNavigate={setActiveTab}
+            />
+          )}
+
+          {activeTab === 'block-plan' && (
+            <BlockPlanView
+              plan={plan}
+              tasks={tasks}
+              onGeneratePlan={handleOptimize}
+              onOpenValidator={() => setIsValidatorOpen(true)}
+              onOpenBenchmark={() => setIsBenchmarkOpen(true)}
+              onPublishPlan={handleApprovePublish}
+              onAdjustSchedule={item => setSelectedOverrideItem(item)}
+              loading={loading}
+            />
+          )}
+
+          {activeTab === 'network' && (
+            <NetworkView
+              stations={stations}
+              sections={sections}
+              plan={plan}
+              onNavigate={setActiveTab}
+            />
+          )}
+
+          {activeTab === 'disruptions' && (
+            <DisruptionsView
+              plan={plan}
+              onSimulateDisruption={handleDisruptionSubmit}
+              loading={loading}
+            />
+          )}
+
+          {activeTab === 'audit' && (
+            <AuditTrailView logs={auditLogs} />
+          )}
+        </main>
+      </div>
 
       {/* Modals & Drawers */}
-      <AIExplanationPanel
-        explanation={selectedExplanation}
-        onClose={() => setSelectedExplanation(null)}
+      <TaskDetailDrawer
+        explanation={selectedTaskExplanation}
+        task={selectedTaskObj}
+        onClose={() => {
+          setSelectedTaskExplanation(null);
+          setSelectedTaskObj(null);
+        }}
+        onFindBlock={() => setActiveTab('block-plan')}
       />
 
       <BenchmarkModal
         isOpen={isBenchmarkOpen}
         onClose={() => setIsBenchmarkOpen(false)}
-        selectedHorizon={selectedHorizon}
+        selectedHorizon="WEEKLY"
       />
 
       <ValidatorModal
@@ -262,10 +291,9 @@ export const App: React.FC = () => {
         onSubmit={handleOverrideSubmit}
       />
 
-      <DisruptionModal
-        isOpen={isDisruptionOpen}
-        onClose={() => setIsDisruptionOpen(false)}
-        onSubmit={handleDisruptionSubmit}
+      <HelpModal
+        isOpen={isHelpOpen}
+        onClose={() => setIsHelpOpen(false)}
       />
     </div>
   );
