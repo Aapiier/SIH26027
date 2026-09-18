@@ -1,0 +1,46 @@
+{
+  "total_requests": 86,
+  "department_distribution": {
+    "ENGINEERING": 39,
+    "SIGNAL_TELECOM": 28,
+    "TRD": 19
+  },
+  "severity_distribution": {
+    "EMERGENCY": 15,
+    "ROUTINE": 30,
+    "CRITICAL": 14,
+    "URGENT": 27
+  },
+  "top_busy_sections_requests": {
+    "GZB-ALJN": 15,
+    "ETW-CNB": 15,
+    "CNB-PRYJ": 13,
+    "TDL-ETW": 13,
+    "NDLS-GZB": 12
+  },
+  "train_type_distribution": {
+    "VANDE_BHARAT": 8,
+    "RAJDHANI": 17,
+    "SHATABDI": 8,
+    "SUPERFAST": 43,
+    "EXPRESS": 33,
+    "FREIGHT": 11
+  },
+  "machinery_utilization_demand": {
+    "TAMPING_01": 17,
+    "TAMPING_02": 7,
+    "TOWER_WAGON_02": 8,
+    "TOWER_WAGON_01": 11,
+    "UNIMAT_01": 6,
+    "BCM_01": 9
+  },
+  "timetable_density_per_section": {
+    "CNB-PRYJ": 840,
+    "ETW-CNB": 840,
+    "TDL-ETW": 840,
+    "ALJN-TDL": 840,
+    "GZB-ALJN": 840,
+    "NDLS-GZB": 840
+  },
+  "power_blocks_required_count": 28
+}

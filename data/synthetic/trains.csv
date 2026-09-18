@@ -1,0 +1,121 @@
+train_number,train_name,train_type,priority_rank,speed_factor,headway_buffer_mins,max_speed_kmph
+22436,Vande Bharat Express (NDLS-BSB),VANDE_BHARAT,1,1.15,15,130
+22435,Vande Bharat Express (BSB-NDLS),VANDE_BHARAT,1,1.15,15,130
+12302,Howrah Rajdhani Express,RAJDHANI,1,1.1,15,130
+12301,New Delhi Rajdhani Express,RAJDHANI,1,1.1,15,130
+12004,Lucknow Swarna Shatabdi,SHATABDI,1,1.05,12,130
+12003,New Delhi Shatabdi Express,SHATABDI,1,1.05,12,130
+12554,Vaishali Superfast Express,SUPERFAST,2,0.95,10,110
+12553,New Delhi Vaishali Express,SUPERFAST,2,0.95,10,110
+12418,Prayagraj Express,SUPERFAST,2,0.95,10,110
+12417,New Delhi Prayagraj Express,SUPERFAST,2,0.95,10,110
+12876,Neelachal Express,SUPERFAST,2,0.95,10,110
+12875,Anand Vihar Neelachal Express,SUPERFAST,2,0.95,10,110
+14218,Unchahar Express,EXPRESS,3,0.85,8,110
+14217,Prayag Unchahar Express,EXPRESS,3,0.85,8,110
+14006,Lichchavi Express,EXPRESS,3,0.85,8,110
+14005,Anand Vihar Lichchavi Express,EXPRESS,3,0.85,8,110
+19702,Express Express 001,EXPRESS,3,0.85,8,110
+17493,Express Express 002,EXPRESS,3,0.85,8,110
+15533,Rajdhani Express 003,RAJDHANI,1,1.1,15,130
+17441,Vande_bharat Express 004,VANDE_BHARAT,1,1.15,15,130
+FRT-0005,Container Freight Corridor Unit 005,FREIGHT,4,0.65,5,75
+17434,Superfast Express 006,SUPERFAST,2,0.95,10,110
+17896,Express Express 007,EXPRESS,3,0.85,8,110
+FRT-0008,Container Freight Corridor Unit 008,FREIGHT,4,0.65,5,75
+17463,Superfast Express 009,SUPERFAST,2,0.95,10,110
+15296,Superfast Express 010,SUPERFAST,2,0.95,10,110
+16541,Express Express 011,EXPRESS,3,0.85,8,110
+15444,Rajdhani Express 012,RAJDHANI,1,1.1,15,130
+15105,Express Express 013,EXPRESS,3,0.85,8,110
+19395,Express Express 014,EXPRESS,3,0.85,8,110
+16662,Rajdhani Express 015,RAJDHANI,1,1.1,15,130
+16488,Shatabdi Express 016,SHATABDI,1,1.05,12,130
+14489,Express Express 017,EXPRESS,3,0.85,8,110
+15521,Shatabdi Express 018,SHATABDI,1,1.05,12,130
+16969,Express Express 019,EXPRESS,3,0.85,8,110
+15809,Express Express 020,EXPRESS,3,0.85,8,110
+17534,Superfast Express 021,SUPERFAST,2,0.95,10,110
+15876,Rajdhani Express 022,RAJDHANI,1,1.1,15,130
+19862,Express Express 023,EXPRESS,3,0.85,8,110
+13390,Express Express 024,EXPRESS,3,0.85,8,110
+14324,Express Express 025,EXPRESS,3,0.85,8,110
+17185,Superfast Express 026,SUPERFAST,2,0.95,10,110
+12765,Superfast Express 027,SUPERFAST,2,0.95,10,110
+18153,Express Express 028,EXPRESS,3,0.85,8,110
+14542,Rajdhani Express 029,RAJDHANI,1,1.1,15,130
+13631,Rajdhani Express 030,RAJDHANI,1,1.1,15,130
+12378,Rajdhani Express 031,RAJDHANI,1,1.1,15,130
+15892,Rajdhani Express 032,RAJDHANI,1,1.1,15,130
+18295,Superfast Express 033,SUPERFAST,2,0.95,10,110
+15395,Vande_bharat Express 034,VANDE_BHARAT,1,1.15,15,130
+FRT-0035,Container Freight Corridor Unit 035,FREIGHT,4,0.65,5,75
+17884,Superfast Express 036,SUPERFAST,2,0.95,10,110
+16049,Express Express 037,EXPRESS,3,0.85,8,110
+13208,Superfast Express 038,SUPERFAST,2,0.95,10,110
+12045,Express Express 039,EXPRESS,3,0.85,8,110
+FRT-0040,Container Freight Corridor Unit 040,FREIGHT,4,0.65,5,75
+FRT-0041,Container Freight Corridor Unit 041,FREIGHT,4,0.65,5,75
+FRT-0042,Container Freight Corridor Unit 042,FREIGHT,4,0.65,5,75
+13792,Express Express 043,EXPRESS,3,0.85,8,110
+19847,Rajdhani Express 044,RAJDHANI,1,1.1,15,130
+15805,Express Express 045,EXPRESS,3,0.85,8,110
+14041,Vande_bharat Express 046,VANDE_BHARAT,1,1.15,15,130
+FRT-0047,Container Freight Corridor Unit 047,FREIGHT,4,0.65,5,75
+13092,Rajdhani Express 048,RAJDHANI,1,1.1,15,130
+17468,Express Express 049,EXPRESS,3,0.85,8,110
+16578,Superfast Express 050,SUPERFAST,2,0.95,10,110
+19782,Superfast Express 051,SUPERFAST,2,0.95,10,110
+15625,Express Express 052,EXPRESS,3,0.85,8,110
+17892,Superfast Express 053,SUPERFAST,2,0.95,10,110
+FRT-0054,Container Freight Corridor Unit 054,FREIGHT,4,0.65,5,75
+19428,Superfast Express 055,SUPERFAST,2,0.95,10,110
+19349,Superfast Express 056,SUPERFAST,2,0.95,10,110
+19057,Rajdhani Express 057,RAJDHANI,1,1.1,15,130
+14123,Superfast Express 058,SUPERFAST,2,0.95,10,110
+18880,Express Express 059,EXPRESS,3,0.85,8,110
+18273,Superfast Express 060,SUPERFAST,2,0.95,10,110
+15969,Express Express 061,EXPRESS,3,0.85,8,110
+14249,Superfast Express 062,SUPERFAST,2,0.95,10,110
+17845,Superfast Express 063,SUPERFAST,2,0.95,10,110
+14225,Shatabdi Express 064,SHATABDI,1,1.05,12,130
+19315,Shatabdi Express 065,SHATABDI,1,1.05,12,130
+13133,Superfast Express 066,SUPERFAST,2,0.95,10,110
+15137,Rajdhani Express 067,RAJDHANI,1,1.1,15,130
+17786,Express Express 068,EXPRESS,3,0.85,8,110
+15398,Rajdhani Express 069,RAJDHANI,1,1.1,15,130
+16445,Superfast Express 070,SUPERFAST,2,0.95,10,110
+12510,Superfast Express 071,SUPERFAST,2,0.95,10,110
+15441,Rajdhani Express 072,RAJDHANI,1,1.1,15,130
+18306,Superfast Express 073,SUPERFAST,2,0.95,10,110
+17697,Superfast Express 074,SUPERFAST,2,0.95,10,110
+19214,Vande_bharat Express 075,VANDE_BHARAT,1,1.15,15,130
+15116,Express Express 076,EXPRESS,3,0.85,8,110
+19722,Superfast Express 077,SUPERFAST,2,0.95,10,110
+18172,Superfast Express 078,SUPERFAST,2,0.95,10,110
+19304,Superfast Express 079,SUPERFAST,2,0.95,10,110
+FRT-0080,Container Freight Corridor Unit 080,FREIGHT,4,0.65,5,75
+18123,Superfast Express 081,SUPERFAST,2,0.95,10,110
+18552,Express Express 082,EXPRESS,3,0.85,8,110
+13806,Superfast Express 083,SUPERFAST,2,0.95,10,110
+14235,Superfast Express 084,SUPERFAST,2,0.95,10,110
+12237,Superfast Express 085,SUPERFAST,2,0.95,10,110
+17479,Superfast Express 086,SUPERFAST,2,0.95,10,110
+15312,Express Express 087,EXPRESS,3,0.85,8,110
+18885,Express Express 088,EXPRESS,3,0.85,8,110
+13045,Superfast Express 089,SUPERFAST,2,0.95,10,110
+FRT-0090,Container Freight Corridor Unit 090,FREIGHT,4,0.65,5,75
+19429,Superfast Express 091,SUPERFAST,2,0.95,10,110
+16623,Superfast Express 092,SUPERFAST,2,0.95,10,110
+12687,Express Express 093,EXPRESS,3,0.85,8,110
+13111,Superfast Express 094,SUPERFAST,2,0.95,10,110
+FRT-0095,Container Freight Corridor Unit 095,FREIGHT,4,0.65,5,75
+14131,Rajdhani Express 096,RAJDHANI,1,1.1,15,130
+13733,Superfast Express 097,SUPERFAST,2,0.95,10,110
+14764,Superfast Express 098,SUPERFAST,2,0.95,10,110
+19792,Shatabdi Express 099,SHATABDI,1,1.05,12,130
+14066,Express Express 100,EXPRESS,3,0.85,8,110
+15852,Express Express 101,EXPRESS,3,0.85,8,110
+16418,Vande_bharat Express 102,VANDE_BHARAT,1,1.15,15,130
+19798,Vande_bharat Express 103,VANDE_BHARAT,1,1.15,15,130
+17325,Shatabdi Express 104,SHATABDI,1,1.05,12,130

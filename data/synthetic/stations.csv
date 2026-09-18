@@ -1,0 +1,9 @@
+code,name,division,zone,x,y,platforms
+NDLS,New Delhi,Delhi,NR,100,250,16
+ANVT,Anand Vihar Terminal,Delhi,NR,180,210,7
+GZB,Ghaziabad Junction,Delhi,NR,260,250,8
+ALJN,Aligarh Junction,Prayagraj,NCR,420,280,7
+TDL,Tundla Junction,Prayagraj,NCR,560,320,5
+ETW,Etawah Junction,Prayagraj,NCR,700,350,5
+CNB,Kanpur Central,Prayagraj,NCR,860,380,10
+PRYJ,Prayagraj Junction,Prayagraj,NCR,1020,420,10

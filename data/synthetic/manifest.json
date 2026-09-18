@@ -1,0 +1,35 @@
+{
+  "generator_version": "1.0.0",
+  "generated_at": "2026-09-18T20:05:22.000658",
+  "seed": 42,
+  "planning_days": 7,
+  "validation_status": "PASSED",
+  "row_counts": {
+    "stations": 8,
+    "track_sections": 7,
+    "tracks": 16,
+    "assets": 174,
+    "trains": 120,
+    "timetable_entries": 5040,
+    "goods_forecasts": 218,
+    "resources": 9,
+    "maintenance_requests": 86
+  },
+  "written_files": {
+    "stations.csv": 8,
+    "track_sections.csv": 7,
+    "tracks.csv": 16,
+    "assets.csv": 174,
+    "trains.csv": 120,
+    "timetable.csv": 5040,
+    "goods_forecast.csv": 218,
+    "resources.csv": 9,
+    "maintenance_requests.csv": 86
+  },
+  "scenarios_injected": {
+    "scenario_1": "Tri-Department Mega Block on GZB-ALJN",
+    "scenario_2": "Safety-Critical Emergency on NDLS-GZB",
+    "scenario_4": "Heavy Machine Routing Conflict on TAMPING_01",
+    "scenario_7": "Infeasible Duration Request on ETW-CNB"
+  }
+}
