@@ -227,6 +227,12 @@ npm install
 npm run dev
 ```
 
+### 3. One-Click Project Launch (Windows)
+```bat
+start.bat
+```
+*Automatically launches both the FastAPI backend (`http://127.0.0.1:8000`) and the Vite React frontend (`http://localhost:5173`) in dedicated console windows.*
+
 ---
 
 ## 🧪 Automated Testing & Verification

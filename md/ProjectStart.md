@@ -1,3 +1,13 @@
+## 🚀 One-Click Start (All Services):
+
+```bat
+start.bat
+```
+
+Project starts in background with backend and frontend
+______________________________________________________________
+
+
 ## Start Backend Server:
 
 ```bash
