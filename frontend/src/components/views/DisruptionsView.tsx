@@ -76,7 +76,7 @@ export const DisruptionsView: React.FC<DisruptionsViewProps> = ({
           className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-md shadow-sm flex items-center gap-2 transition-colors"
         >
           <AlertTriangle className="w-4 h-4" />
-          <span>Simulate Train Delay Disruption</span>
+          <span>Simulate Disruption</span>
         </button>
       </div>
 
@@ -98,7 +98,24 @@ export const DisruptionsView: React.FC<DisruptionsViewProps> = ({
                 </p>
               </div>
             </div>
-            <Badge variant="warning">1 BLOCK AFFECTED</Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant="warning">1 BLOCK AFFECTED</Badge>
+              <button
+                type="button"
+                onClick={() => {
+                  onSimulateDisruption({
+                    train_number: lastDisruptionDetails.trainNumber,
+                    section_id: lastDisruptionDetails.sectionId,
+                    delay_minutes: lastDisruptionDetails.delayMinutes,
+                  });
+                }}
+                disabled={loading}
+                className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded text-xs font-semibold shadow-xs flex items-center gap-1.5 transition-colors disabled:opacity-50"
+              >
+                <Sparkles className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+                <span>{loading ? 'Re-planning...' : 'Re-plan Schedule'}</span>
+              </button>
+            </div>
           </div>
 
           {/* Before & After Re-Planning Comparison Card */}
@@ -245,7 +262,7 @@ export const DisruptionsView: React.FC<DisruptionsViewProps> = ({
                   disabled={loading}
                   className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded text-xs font-semibold shadow-sm transition-colors"
                 >
-                  {loading ? 'Re-planning...' : 'Apply Disruption & Re-plan'}
+                  {loading ? 'Re-planning...' : 'Re-plan Schedule'}
                 </button>
               </div>
             </form>

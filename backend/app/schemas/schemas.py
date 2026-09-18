@@ -191,3 +191,66 @@ class DisruptionTrainDelayRequest(BaseModel):
     section_id: str
     delay_minutes: int
     actor: str = "CONTROLLER"
+
+
+class AlternativeWindowSchema(BaseModel):
+    window_id: str
+    window_label: str
+    duration_minutes: int
+    score: float
+    status: str
+    reason: str
+
+
+class OpportunityEvaluationResponse(BaseModel):
+    item_id: str
+    score: float
+    recommended_window: str
+    section_id: str
+    track_id: str
+    tasks_count: int
+    departments: List[str]
+    high_risk_assets_addressed: int
+    reasons: List[str]
+    breakdown: Dict[str, float]
+    alternatives: List[AlternativeWindowSchema]
+    tooltip: str = "An internal decision-support score used to compare feasible maintenance windows."
+
+
+class WhatIfSimulateRequest(BaseModel):
+    perturbation_type: str = Field(..., description="'TRAIN_DELAY', 'EXPAND_DURATION', 'SHIFT_BLOCK'")
+    train_number: Optional[str] = "12004"
+    section_id: Optional[str] = "GZB-ALJN"
+    delay_minutes: Optional[int] = 45
+    item_id: Optional[str] = None
+    extra_minutes: Optional[int] = 60
+    shift_minutes: Optional[int] = 60
+    actor: Optional[str] = "CONTROLLER"
+
+
+class PlanMetricsSummary(BaseModel):
+    possession_hours: float
+    scheduled_tasks: int
+    combined_blocks: int
+    total_blocks: int
+
+
+class ImpactSummarySchema(BaseModel):
+    possession_delta_hours: float
+    possession_delta_label: str
+    bundles_lost: int
+    bundles_lost_label: str
+    blocks_moved: int
+    blocks_moved_label: str
+    conflicts_detected: List[str] = []
+    reasons: List[str] = []
+    is_feasible: bool = True
+
+
+class WhatIfResponseSchema(BaseModel):
+    status: str
+    perturbation_type: str
+    current_plan: PlanMetricsSummary
+    what_if_plan: PlanMetricsSummary
+    impact: ImpactSummarySchema
+

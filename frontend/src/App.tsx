@@ -12,6 +12,8 @@ import { BenchmarkModal } from './components/BenchmarkModal';
 import { ValidatorModal } from './components/ValidatorModal';
 import { OverrideModal } from './components/OverrideModal';
 import { HelpModal } from './components/HelpModal';
+import { OpportunityDrawer } from './components/OpportunityDrawer';
+import { WhatIfModal } from './components/WhatIfModal';
 
 import {
   fetchMetrics,
@@ -24,7 +26,11 @@ import {
   explainTask,
   applyManualOverride,
   triggerTrainDelayDisruption,
-  publishSchedule
+  publishSchedule,
+  triggerPrioritization,
+  triggerSync,
+  triggerDemoReset,
+  fetchOpportunityEvaluation
 } from './services/api';
 
 import {
@@ -35,7 +41,8 @@ import {
   TrackSection,
   AuditLog,
   BlockPlanItem,
-  TaskExplanation
+  TaskExplanation,
+  OpportunityEvaluation
 } from './types';
 
 import { AlertCircle, RefreshCw, Train } from 'lucide-react';
@@ -59,6 +66,9 @@ export const App: React.FC = () => {
   const [selectedTaskExplanation, setSelectedTaskExplanation] = useState<TaskExplanation | null>(null);
   const [selectedTaskObj, setSelectedTaskObj] = useState<MaintenanceRequest | null>(null);
   const [selectedOverrideItem, setSelectedOverrideItem] = useState<BlockPlanItem | null>(null);
+  const [selectedOpportunity, setSelectedOpportunity] = useState<OpportunityEvaluation | null>(null);
+  const [opportunityLoading, setOpportunityLoading] = useState<boolean>(false);
+  const [isWhatIfOpen, setIsWhatIfOpen] = useState<boolean>(false);
   const [isBenchmarkOpen, setIsBenchmarkOpen] = useState<boolean>(false);
   const [isValidatorOpen, setIsValidatorOpen] = useState<boolean>(false);
   const [isHelpOpen, setIsHelpOpen] = useState<boolean>(false);
@@ -104,6 +114,36 @@ export const App: React.FC = () => {
     }
   };
 
+  const handlePrioritize = async () => {
+    setLoading(true);
+    try {
+      await triggerPrioritization();
+      await loadData();
+    } catch (err: any) {
+      alert(`Prioritization failed: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetDemo = async () => {
+    const confirmed = window.confirm(
+      'Reset the demonstration environment?\n\nThis will restore the canonical synthetic planning state, re-prioritize requests, regenerate candidate windows, and solve a validated master schedule.'
+    );
+    if (!confirmed) return;
+
+    setLoading(true);
+    try {
+      const res = await triggerDemoReset(false);
+      await loadData();
+      alert(`Canonical demonstration state restored successfully.\n\nPlan ID: ${res.plan_id}\nScheduled Tasks: ${res.scheduled_tasks}\nSentinel Status: ${res.validation_verdict}`);
+    } catch (err: any) {
+      alert(`Demo reset failed: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSelectTask = async (taskId: string) => {
     const foundTask = tasks.find(t => t.request_id === taskId) || null;
     setSelectedTaskObj(foundTask);
@@ -136,17 +176,54 @@ export const App: React.FC = () => {
 
   const handleApprovePublish = async () => {
     if (!plan?.plan_id) return;
+    const confirmed = window.confirm(
+      `Publish schedule ${plan.plan_id} for simulation?\n\nThis locks the verified possession windows and logs the approval to the immutable audit trail for sectional controllers.`
+    );
+    if (!confirmed) return;
+
     setLoading(true);
     try {
       await publishSchedule(plan.plan_id);
       await loadData();
-      alert(`Schedule ${plan.plan_id} successfully published to divisional train controllers.`);
+      alert(`Schedule ${plan.plan_id} successfully published for simulation.`);
     } catch (err: any) {
       alert(`Publish failed: ${err.message}`);
     } finally {
       setLoading(false);
     }
   };
+
+  const handleWhyThisWindow = async (item: BlockPlanItem) => {
+    setOpportunityLoading(true);
+    setSelectedOpportunity(null);
+    try {
+      const opp = await fetchOpportunityEvaluation(item.item_id);
+      setSelectedOpportunity(opp);
+    } catch (err: any) {
+      console.error('Failed to load opportunity evaluation:', err);
+      alert(`Could not load opportunity score for block ${item.item_id}: ${err.message}`);
+    } finally {
+      setOpportunityLoading(false);
+    }
+  };
+
+  const handleWhatIfReplan = async (trainNo: string, sectionId: string, delayMins: number) => {
+    setLoading(true);
+    try {
+      await triggerTrainDelayDisruption({
+        train_number: trainNo,
+        section_id: sectionId,
+        delay_minutes: delayMins,
+      });
+      await loadData();
+      alert(`Schedule dynamically re-optimized for Train ${trainNo} (+${delayMins}m delay on ${sectionId}).`);
+    } catch (err: any) {
+      alert(`Re-plan failed: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   // Urgent Count for Sidebar Badge
   const urgentCount = tasks.filter(
@@ -176,6 +253,8 @@ export const App: React.FC = () => {
         activeTab={activeTab}
         onTabChange={setActiveTab}
         onOpenHelp={() => setIsHelpOpen(true)}
+        onResetDemo={handleResetDemo}
+        resetting={loading}
         urgentCount={urgentCount}
       />
 
@@ -222,6 +301,8 @@ export const App: React.FC = () => {
               tasks={tasks}
               onSelectTask={handleSelectTask}
               onNavigate={setActiveTab}
+              onPrioritize={handlePrioritize}
+              loading={loading}
             />
           )}
 
@@ -234,6 +315,8 @@ export const App: React.FC = () => {
               onOpenBenchmark={() => setIsBenchmarkOpen(true)}
               onPublishPlan={handleApprovePublish}
               onAdjustSchedule={item => setSelectedOverrideItem(item)}
+              onWhyThisWindow={handleWhyThisWindow}
+              onOpenWhatIf={() => setIsWhatIfOpen(true)}
               loading={loading}
             />
           )}
@@ -270,6 +353,19 @@ export const App: React.FC = () => {
           setSelectedTaskObj(null);
         }}
         onFindBlock={() => setActiveTab('block-plan')}
+      />
+
+      <OpportunityDrawer
+        opportunity={selectedOpportunity}
+        loading={opportunityLoading}
+        onClose={() => setSelectedOpportunity(null)}
+      />
+
+      <WhatIfModal
+        isOpen={isWhatIfOpen}
+        onClose={() => setIsWhatIfOpen(false)}
+        plan={plan}
+        onApplyReplan={handleWhatIfReplan}
       />
 
       <BenchmarkModal

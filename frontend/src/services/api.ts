@@ -7,7 +7,9 @@ import {
   AuditLog,
   TaskExplanation,
   BenchmarkResponse,
-  ValidationVerdict
+  ValidationVerdict,
+  OpportunityEvaluation,
+  WhatIfResponse
 } from '../types';
 
 const API_BASE = '/api/v1';
@@ -64,6 +66,17 @@ export async function fetchAuditLogs(): Promise<AuditLog[]> {
 export async function triggerSync(): Promise<any> {
   const res = await fetch(`${API_BASE}/ingestion/sync`, { method: 'POST' });
   if (!res.ok) throw new Error('Failed to sync dataset');
+  return res.json();
+}
+
+export async function triggerDemoReset(reGenerate: boolean = false): Promise<any> {
+  const res = await fetch(`${API_BASE}/demo/reset?re_generate=${reGenerate}`, {
+    method: 'POST'
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Failed to reset demo environment' }));
+    throw new Error(err.detail || 'Failed to reset demo environment');
+  }
   return res.json();
 }
 
@@ -154,3 +167,31 @@ export async function triggerTrainDelayDisruption(payload: {
   }
   return res.json();
 }
+
+export async function fetchOpportunityEvaluation(itemId: string): Promise<OpportunityEvaluation> {
+  const res = await fetch(`${API_BASE}/opportunity/item/${encodeURIComponent(itemId)}`);
+  if (!res.ok) throw new Error(`Failed to fetch opportunity evaluation for ${itemId}`);
+  return res.json();
+}
+
+export async function simulateWhatIf(payload: {
+  perturbation_type: string;
+  train_number?: string;
+  section_id?: string;
+  delay_minutes?: number;
+  item_id?: string;
+  extra_minutes?: number;
+  shift_minutes?: number;
+}): Promise<WhatIfResponse> {
+  const res = await fetch(`${API_BASE}/opportunity/what-if`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Failed to execute what-if simulation' }));
+    throw new Error(err.detail || 'Failed to execute what-if simulation');
+  }
+  return res.json();
+}
+

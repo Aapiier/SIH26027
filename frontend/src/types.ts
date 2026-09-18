@@ -205,3 +205,56 @@ export interface AuditLog {
   content_hash: string;
   timestamp: string;
 }
+
+export interface AlternativeWindow {
+  window_id: string;
+  window_label: string;
+  duration_minutes: number;
+  score: number;
+  status: 'ALTERNATIVE' | 'SUBOPTIMAL' | 'INFEASIBLE';
+  reason: string;
+}
+
+export interface OpportunityEvaluation {
+  item_id: string;
+  score: number;
+  recommended_window: string;
+  section_id: string;
+  track_id: string;
+  tasks_count: number;
+  departments: string[];
+  high_risk_assets_addressed: number;
+  reasons: string[];
+  breakdown: Record<string, number>;
+  alternatives: AlternativeWindow[];
+  tooltip: string;
+}
+
+export interface WhatIfResponse {
+  status: string;
+  perturbation_type: string;
+  current_plan: {
+    possession_hours: number;
+    scheduled_tasks: number;
+    combined_blocks: number;
+    total_blocks: number;
+  };
+  what_if_plan: {
+    possession_hours: number;
+    scheduled_tasks: number;
+    combined_blocks: number;
+    total_blocks: number;
+  };
+  impact: {
+    possession_delta_hours: number;
+    possession_delta_label: string;
+    bundles_lost: number;
+    bundles_lost_label: string;
+    blocks_moved: number;
+    blocks_moved_label: string;
+    conflicts_detected: string[];
+    reasons: string[];
+    is_feasible: boolean;
+  };
+}
+

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Filter, Wrench, AlertTriangle, ArrowUpDown, ChevronRight } from 'lucide-react';
+import { Search, Filter, Wrench, AlertTriangle, ArrowUpDown, ChevronRight, Sparkles } from 'lucide-react';
 import { MaintenanceRequest } from '../../types';
 import { Badge } from '../ui/Badge';
 import { EmptyState } from '../ui/EmptyState';
@@ -9,12 +9,16 @@ interface MaintenanceViewProps {
   tasks: MaintenanceRequest[];
   onSelectTask: (taskId: string) => void;
   onNavigate: (tab: NavTab) => void;
+  onPrioritize?: () => void;
+  loading?: boolean;
 }
 
 export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
   tasks,
   onSelectTask,
   onNavigate,
+  onPrioritize,
+  loading = false,
 }) => {
   const [activeTab, setActiveTab] = useState<'ALL' | 'CRITICAL' | 'HIGH_RISK' | 'PLANNED' | 'UNSCHEDULED'>('ALL');
   const [selectedDept, setSelectedDept] = useState<string>('ALL');
@@ -82,19 +86,33 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
           />
         </div>
 
-        {/* Department Filter Dropdown */}
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-medium text-slate-500">Department:</span>
-          <select
-            value={selectedDept}
-            onChange={e => setSelectedDept(e.target.value)}
-            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-md text-xs text-slate-800 font-medium focus:outline-none focus:border-blue-500 transition-colors"
-          >
-            <option value="ALL">All Departments</option>
-            <option value="ENGINEERING">Engineering (P-Way)</option>
-            <option value="SIGNAL_TELECOM">Signal & Telecom</option>
-            <option value="TRD">Traction (TRD)</option>
-          </select>
+        {/* Action Controls & Department Filter */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-slate-500">Department:</span>
+            <select
+              value={selectedDept}
+              onChange={e => setSelectedDept(e.target.value)}
+              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-md text-xs text-slate-800 font-medium focus:outline-none focus:border-blue-500 transition-colors"
+            >
+              <option value="ALL">All Departments</option>
+              <option value="ENGINEERING">Engineering (P-Way)</option>
+              <option value="SIGNAL_TELECOM">Signal & Telecom</option>
+              <option value="TRD">Traction (TRD)</option>
+            </select>
+          </div>
+
+          {onPrioritize && (
+            <button
+              type="button"
+              onClick={onPrioritize}
+              disabled={loading}
+              className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-md shadow-sm flex items-center gap-1.5 transition-colors disabled:opacity-50"
+            >
+              <Sparkles className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+              <span>{loading ? 'Prioritizing...' : 'Prioritize Requests'}</span>
+            </button>
+          )}
         </div>
       </div>
 

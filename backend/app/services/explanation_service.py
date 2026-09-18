@@ -67,7 +67,7 @@ def explain_unscheduled_task(db: Session, request_id: str) -> Dict[str, Any]:
         "predicted_failure_risk": req.ai_risk_score if req.ai_risk_score is not None else ml_risk,
         "prediction_horizon": "14 Days",
         "prediction_target": "P(failure_within_14d)",
-        "model_name": model_meta.get("model_name", "LightGBM / HistGradientBoosting"),
+        "model_name": model_meta.get("model_name", "HistGradientBoosting GBDT"),
         "model_version": model_meta.get("version", "2.0.0"),
         "calibrated_threshold": model_meta.get("calibrated_threshold", 0.40),
         "synthetic_notice": "Predicted synthetic failure risk derived from longitudinal asset wear history",

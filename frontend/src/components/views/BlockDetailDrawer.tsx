@@ -10,7 +10,8 @@ import {
   TrendingDown,
   Wrench,
   Truck,
-  Users
+  Users,
+  Sparkles
 } from 'lucide-react';
 import { BlockPlanItem, MaintenanceRequest } from '../../types';
 import { Badge } from '../ui/Badge';
@@ -20,6 +21,7 @@ interface BlockDetailDrawerProps {
   tasks: MaintenanceRequest[];
   onClose: () => void;
   onAdjustSchedule: (item: BlockPlanItem) => void;
+  onWhyThisWindow?: (item: BlockPlanItem) => void;
 }
 
 export const BlockDetailDrawer: React.FC<BlockDetailDrawerProps> = ({
@@ -27,6 +29,7 @@ export const BlockDetailDrawer: React.FC<BlockDetailDrawerProps> = ({
   tasks,
   onClose,
   onAdjustSchedule,
+  onWhyThisWindow,
 }) => {
   if (!item) return null;
 
@@ -213,26 +216,39 @@ export const BlockDetailDrawer: React.FC<BlockDetailDrawerProps> = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-md text-xs font-semibold transition-colors"
-          >
-            Close
-          </button>
+        <div className="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between gap-2">
+          {onWhyThisWindow && (
+            <button
+              type="button"
+              onClick={() => onWhyThisWindow(item)}
+              className="px-3.5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-md text-xs font-semibold shadow-xs flex items-center gap-1.5 transition-all"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Why this Window?</span>
+            </button>
+          )}
 
-          <button
-            type="button"
-            onClick={() => {
-              onAdjustSchedule(item);
-              onClose();
-            }}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-md shadow-sm flex items-center gap-1.5 transition-colors"
-          >
-            <Edit3 className="w-3.5 h-3.5" />
-            Adjust Schedule
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-md text-xs font-semibold transition-colors"
+            >
+              Close
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                onAdjustSchedule(item);
+                onClose();
+              }}
+              className="px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-md shadow-sm flex items-center gap-1.5 transition-colors"
+            >
+              <Edit3 className="w-3.5 h-3.5" />
+              Adjust Schedule
+            </button>
+          </div>
         </div>
       </div>
     </div>

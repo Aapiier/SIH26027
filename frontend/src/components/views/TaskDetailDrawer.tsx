@@ -183,11 +183,11 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
                 <div className="grid grid-cols-2 gap-2 text-[11px]">
                   <div>
                     <span className="text-slate-500">Model Name:</span>
-                    <p className="font-mono font-semibold text-slate-800">{riskCtx?.model_name || 'LightGBM Classifier'}</p>
+                    <p className="font-mono font-semibold text-slate-800">{riskCtx?.model_name || 'HistGradientBoosting GBDT (v2.0)'}</p>
                   </div>
                   <div>
                     <span className="text-slate-500">Model Version:</span>
-                    <p className="font-mono font-semibold text-slate-800">{riskCtx?.model_version || 'v2.0.0-longitudinal'}</p>
+                    <p className="font-mono font-semibold text-slate-800">{riskCtx?.model_version || '2.0.0-longitudinal'}</p>
                   </div>
                   <div>
                     <span className="text-slate-500">Raw Risk Probability:</span>

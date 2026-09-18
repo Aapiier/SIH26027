@@ -8,7 +8,8 @@ import {
   FileText,
   HelpCircle,
   Database,
-  Train
+  Train,
+  RotateCcw
 } from 'lucide-react';
 
 export type NavTab =
@@ -23,16 +24,20 @@ interface SidebarProps {
   activeTab: NavTab;
   onTabChange: (tab: NavTab) => void;
   onOpenHelp: () => void;
+  onResetDemo?: () => void;
   urgentCount?: number;
   disruptionCount?: number;
+  resetting?: boolean;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   activeTab,
   onTabChange,
   onOpenHelp,
+  onResetDemo,
   urgentCount = 0,
   disruptionCount = 0,
+  resetting = false,
 }) => {
   const navItems: Array<{
     id: NavTab;
@@ -127,27 +132,52 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </nav>
       </div>
 
-      {/* Bottom: Simulation Context & Help Guide */}
+      {/* Bottom: Demo Controls & Help Guide */}
       <div className="p-3 border-t border-slate-800 space-y-2">
         {/* Simulation Environment Indicator */}
-        <div className="px-3.5 py-2.5 rounded-md bg-slate-800/60 border border-slate-700/60 flex items-center justify-between text-xs">
+        <div className="px-3.5 py-2 rounded-md bg-slate-800/40 border border-slate-700/50 flex items-center justify-between text-xs">
           <div className="flex items-center gap-2 text-slate-300">
             <Database className="w-3.5 h-3.5 text-blue-400" />
-            <span>Environment</span>
+            <span className="text-[11px] font-medium">Environment</span>
           </div>
-          <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-700">
+          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-700 font-mono">
             SIMULATION
           </span>
+        </div>
+
+        {/* Demo Controls Header */}
+        <div className="pt-1">
+          <div className="px-1 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
+            <span>Demo Controls</span>
+            <span className="text-[9px] text-blue-400 font-mono">Canonical</span>
+          </div>
+
+          {/* Reset Demo Button */}
+          {onResetDemo && (
+            <button
+              type="button"
+              onClick={onResetDemo}
+              disabled={resetting}
+              className="w-full flex items-center justify-between px-3.5 py-2 rounded-md text-xs font-semibold bg-blue-950/40 hover:bg-blue-900/60 text-blue-200 border border-blue-800/50 hover:border-blue-700 transition-all disabled:opacity-50"
+              title="Restore the deterministic demonstration state before presenting."
+            >
+              <div className="flex items-center gap-2">
+                <RotateCcw className={`w-3.5 h-3.5 text-blue-400 ${resetting ? 'animate-spin' : ''}`} />
+                <span>{resetting ? 'Restoring Baseline...' : 'Reset Demo'}</span>
+              </div>
+              <span className="text-[10px] font-mono text-blue-300">Prinstine</span>
+            </button>
+          )}
         </div>
 
         {/* Help & Concepts Button */}
         <button
           type="button"
           onClick={onOpenHelp}
-          className="w-full flex items-center gap-2.5 px-3.5 py-2 rounded-md text-xs font-medium text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition-colors"
+          className="w-full flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition-colors"
         >
-          <HelpCircle className="w-4 h-4 text-slate-400" />
-          <span>Help & Railway Definitions</span>
+          <HelpCircle className="w-3.5 h-3.5 text-slate-400" />
+          <span>Help & Definitions</span>
         </button>
       </div>
     </aside>

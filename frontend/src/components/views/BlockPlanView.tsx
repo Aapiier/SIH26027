@@ -12,7 +12,9 @@ import {
   ChevronDown,
   ChevronRight,
   CheckCircle2,
-  Edit3
+  Edit3,
+  Sliders,
+  Zap
 } from 'lucide-react';
 import { BlockPlan, BlockPlanItem, MaintenanceRequest } from '../../types';
 import { Badge } from '../ui/Badge';
@@ -27,6 +29,8 @@ interface BlockPlanViewProps {
   onOpenBenchmark: () => void;
   onPublishPlan: () => void;
   onAdjustSchedule: (item: BlockPlanItem) => void;
+  onWhyThisWindow?: (item: BlockPlanItem) => void;
+  onOpenWhatIf?: () => void;
   loading: boolean;
 }
 
@@ -38,6 +42,8 @@ export const BlockPlanView: React.FC<BlockPlanViewProps> = ({
   onOpenBenchmark,
   onPublishPlan,
   onAdjustSchedule,
+  onWhyThisWindow,
+  onOpenWhatIf,
   loading,
 }) => {
   const [selectedSection, setSelectedSection] = useState<string>('ALL');
@@ -94,14 +100,24 @@ export const BlockPlanView: React.FC<BlockPlanViewProps> = ({
             <span>{loading ? 'Optimizing Schedule...' : 'Generate Optimized Plan'}</span>
           </button>
 
-          {/* Plan Validation */}
+          {/* What If? Simulator */}
+          <button
+            type="button"
+            onClick={onOpenWhatIf}
+            className="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
+          >
+            <Sliders className="w-4 h-4 text-indigo-600" />
+            <span>What If?</span>
+          </button>
+
+          {/* Validate Plan */}
           <button
             type="button"
             onClick={onOpenValidator}
             className="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-colors"
           >
             <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            <span>Plan Validation</span>
+            <span>Validate Plan</span>
           </button>
 
           {/* Planning Comparison */}
@@ -118,11 +134,24 @@ export const BlockPlanView: React.FC<BlockPlanViewProps> = ({
           <button
             type="button"
             onClick={onPublishPlan}
-            disabled={loading || !plan}
-            className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-md shadow-sm flex items-center gap-1.5 transition-colors disabled:opacity-50"
+            disabled={loading || !plan || plan.status === 'PUBLISHED'}
+            className={`px-3.5 py-2 text-xs font-semibold rounded-md shadow-sm flex items-center gap-1.5 transition-colors ${
+              plan?.status === 'PUBLISHED'
+                ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 cursor-default'
+                : 'bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-50'
+            }`}
           >
-            <Send className="w-3.5 h-3.5" />
-            <span>Publish Plan</span>
+            {plan?.status === 'PUBLISHED' ? (
+              <>
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
+                <span>Published for Simulation</span>
+              </>
+            ) : (
+              <>
+                <Send className="w-3.5 h-3.5" />
+                <span>Publish for Simulation</span>
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -312,6 +341,7 @@ export const BlockPlanView: React.FC<BlockPlanViewProps> = ({
         tasks={tasks}
         onClose={() => setSelectedItem(null)}
         onAdjustSchedule={onAdjustSchedule}
+        onWhyThisWindow={onWhyThisWindow}
       />
     </div>
   );

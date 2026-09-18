@@ -19,6 +19,8 @@ from backend.app.routers.schedules_router import router as schedules_router
 from backend.app.routers.reoptimization_router import router as reopt_router
 from backend.app.routers.metrics_router import router as metrics_router
 from backend.app.routers.audit_router import router as audit_router
+from backend.app.routers.opportunity_router import router as opportunity_router
+from backend.app.routers.demo_router import router as demo_router
 
 
 @asynccontextmanager
@@ -63,6 +65,8 @@ app.include_router(schedules_router)
 app.include_router(reopt_router)
 app.include_router(metrics_router)
 app.include_router(audit_router)
+app.include_router(opportunity_router)
+app.include_router(demo_router)
 
 
 @app.get("/health")

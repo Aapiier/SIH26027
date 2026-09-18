@@ -89,15 +89,16 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           )}
         </div>
 
-        {/* Refresh Button */}
+        {/* Refresh Data Button */}
         <button
           type="button"
           onClick={onRefresh}
           disabled={loading}
-          className="p-2 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 border border-slate-200 transition-colors disabled:opacity-50"
+          className="px-3 py-1.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-colors disabled:opacity-50"
           title="Refresh Data"
         >
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-blue-600' : ''}`} />
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-blue-600' : ''}`} />
+          <span>Refresh Data</span>
         </button>
       </div>
     </header>
