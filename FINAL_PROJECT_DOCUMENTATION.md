@@ -241,45 +241,60 @@ The backend test suite (`backend/tests/`) was executed with Pytest on Python 3.1
 ============================= test session starts =============================
 platform win32 -- Python 3.12.2, pytest-9.1.1, pluggy-1.6.0
 rootdir: C:\rofl\College Documents\Projects\SIH26027
-collected 19 items
+collected 29 items
 
-backend/tests/test_api_e2e.py::test_health_endpoint PASSED               [  5%]
-backend/tests/test_api_e2e.py::test_tasks_list PASSED                    [ 10%]
-backend/tests/test_api_e2e.py::test_network_stations PASSED              [ 15%]
-backend/tests/test_api_e2e.py::test_metrics_dashboard PASSED             [ 21%]
-backend/tests/test_benchmark.py::test_optimization_benchmark_run PASSED  [ 26%]
-backend/tests/test_candidate_windows.py::test_candidate_window_extraction PASSED [ 31%]
-backend/tests/test_ingestion.py::test_ingestion_counts PASSED            [ 36%]
-backend/tests/test_optimizer_and_validator.py::test_optimizer_and_validator_flow PASSED [ 42%]
-backend/tests/test_optimizer_edge_cases.py::test_zero_candidate_windows PASSED [ 47%]
-backend/tests/test_optimizer_edge_cases.py::test_empty_maintenance_requests PASSED [ 52%]
-backend/tests/test_optimizer_edge_cases.py::test_exact_fit_window PASSED [ 57%]
-backend/tests/test_optimizer_edge_cases.py::test_physical_track_contention PASSED [ 63%]
-backend/tests/test_pipeline.py::test_full_pipeline_flow PASSED           [ 68%]
-backend/tests/test_pipeline.py::test_validator_catches_overlap PASSED    [ 73%]
-backend/tests/test_prioritization.py::test_prioritization_pipeline PASSED [ 78%]
-backend/tests/test_reoptimization.py::test_train_delay_reoptimization PASSED [ 84%]
-backend/tests/test_validator_negative.py::test_validator_catches_physical_track_collision PASSED [ 89%]
-backend/tests/test_validator_negative.py::test_validator_catches_train_overlap PASSED [ 94%]
-backend/tests/test_validator_negative.py::test_validator_catches_deadline_violation PASSED [100%]
+backend/tests/test_audit.py::test_audit_trail_creation PASSED             [  3%]
+backend/tests/test_audit.py::test_reoptimization_audit_flow PASSED        [  6%]
+backend/tests/test_benchmark.py::test_benchmark_execution PASSED          [ 10%]
+backend/tests/test_benchmark.py::test_benchmark_metrics_validity PASSED    [ 13%]
+backend/tests/test_bundling.py::test_cross_department_bundling PASSED     [ 17%]
+backend/tests/test_bundling.py::test_bundling_duration_rules PASSED       [ 20%]
+backend/tests/test_bundling.py::test_incompatible_not_bundled PASSED      [ 24%]
+backend/tests/test_bundling.py::test_bundling_reduces_possession PASSED   [ 27%]
+backend/tests/test_ml_v2.py::test_feature_matrix_shape_and_no_target_leakage PASSED [ 31%]
+backend/tests/test_ml_v2.py::test_model_training_and_metrics PASSED       [ 34%]
+backend/tests/test_ml_v2.py::test_inference_output_validity PASSED        [ 37%]
+backend/tests/test_ml_v2.py::test_degradation_simulator_physics PASSED    [ 41%]
+backend/tests/test_optimizer.py::test_cpsat_solver_feasible PASSED        [ 44%]
+backend/tests/test_optimizer.py::test_greedy_baseline_feasible PASSED     [ 48%]
+backend/tests/test_optimizer.py::test_plan_hash_integrity PASSED          [ 51%]
+backend/tests/test_pipeline_e2e.py::test_full_pipeline_e2e PASSED         [ 55%]
+backend/tests/test_prioritization.py::test_hard_safety_gate_escalation PASSED [ 58%]
+backend/tests/test_prioritization.py::test_multi_department_prioritization PASSED [ 62%]
+backend/tests/test_prioritization.py::test_traffic_penalty_monotonicity PASSED [ 65%]
+backend/tests/test_scenario_stress.py::test_scenario_01_mega_block PASSED [ 68%]
+backend/tests/test_scenario_stress.py::test_scenario_02_safety_escalation PASSED [ 72%]
+backend/tests/test_scenario_stress.py::test_scenario_03_freight_squeeze PASSED [ 75%]
+backend/tests/test_scenario_stress.py::test_scenario_04_machine_transit PASSED [ 79%]
+backend/tests/test_scenario_stress.py::test_scenario_05_power_block PASSED [ 82%]
+backend/tests/test_scenario_stress.py::test_scenario_06_train_delay PASSED [ 86%]
+backend/tests/test_scenario_stress.py::test_scenario_07_no_feasible_window PASSED [ 89%]
+backend/tests/test_scenario_stress.py::test_scenario_08_resource_starvation PASSED [ 93%]
+backend/tests/test_scenario_stress.py::test_scenario_09_bundle_compatibility PASSED [ 96%]
+backend/tests/test_scenario_stress.py::test_scenario_10_horizon_boundary PASSED [100%]
 
-======================= 19 passed in 6.32s =======================
+====================== 29 passed in 25.58s =======================
 ```
 
 ---
 
-## 10. Operational Demonstration Scenarios
+## 10. Multi-Scenario Stress Testing & Reliability Verification
 
-1. **Scenario 1: Tri-Department Integrated Mega Block**:
-   - Engineering (`TRACK_GEOMETRY_TWIST`), S&T (`POINT_MACHINE_DETECTION_FAILURE`), and TRD (`INSULATOR_HEAVY_POLLUTION_CLEANING`) on `GZB-ALJN` are automatically bundled into a single shared possession, saving 150 minutes of track closure.
-2. **Scenario 2: Safety-Critical Emergency Escalation**:
-   - `RAIL_FRACTURE_RISK` defect on `NDLS-GZB-UP-FAST` triggers Tier-1 Hard Safety Gate, scoring 98.0 priority and guaranteeing an immediate daytime slot with 15m buffers.
-3. **Scenario 3: Heavy Machinery Routing Conflict**:
-   - `TAMPING_01` demanded simultaneously on distant sections `ALJN-TDL` and `CNB-PRYJ`. The disjunctive routing constraint separates the blocks by required physical transit time (60 mins).
-4. **Scenario 4: Infeasible Duration Handling & Diagnosis**:
-   - An 8-hour deep ballast cleaning task on `ETW-CNB` is diagnosed as `MAX_GAP_INSUFFICIENT` with actionable recommendations to shift to night blocks or split into smaller increments.
-5. **Scenario 5: Disruption-Triggered Reoptimization**:
-   - Train 22436 delayed by 45 minutes on `NDLS-GZB`. The reoptimizer identifies collided blocks, returns affected tasks to queue, preserves unaffected approved blocks, and re-solves the corridor schedule cleanly.
+Detailed reports:
+- [SCENARIO_STRESS_TEST_REPORT.md](SCENARIO_STRESS_TEST_REPORT.md)
+- [STAGE5_SYSTEM_VALIDATION_REPORT.md](STAGE5_SYSTEM_VALIDATION_REPORT.md)
+
+10 deterministic stress scenarios evaluated under full database isolation (`sqlite:///:memory:`):
+1. **SCN-01 Mega Block**: High-density corridor bundling (Engineering, S&T, TRD) saving 29.2h possession.
+2. **SCN-02 Safety Escalation**: Hard safety gate escalation (score 98.0) protected from displacement.
+3. **SCN-03 Freight Squeeze**: Dense freight traffic window contraction with 0 train/block collisions.
+4. **SCN-04 Machine Transit**: Multi-depot machine movement buffers enforced; deliberate collision caught by validator.
+5. **SCN-05 Power Block**: 25kV OHE isolation synchronized with track work without clash.
+6. **SCN-06 Train Delay Disruption**: 45m train delay re-solved in 0.05s preserving unaffected blocks.
+7. **SCN-07 No Feasible Window**: Long-duration tasks correctly diagnosed as infeasible (`MAX_GAP_INSUFFICIENT`).
+8. **SCN-08 Resource Starvation**: Heavy machinery capacity strictly respected under resource scarcity.
+9. **SCN-09 Bundle Compatibility**: Compatible tasks merged into unified blocks; incompatible tasks isolated.
+10. **SCN-10 Horizon Boundary**: Boundary and edge-gap windows captured without silent task loss.
 
 ---
 

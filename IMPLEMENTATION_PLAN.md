@@ -280,3 +280,22 @@ The prototype is complete when:
 - Production build verified with `npm run build` (0 errors) and all 19 backend tests passing.
 - Fully documented in `FRONTEND_V1_IMPLEMENTATION_REPORT.md`.
 
+### Stage 5: Multi-Scenario Stress Testing & End-to-End Reliability Hardening (Completed)
+- Designed and built modular, reproducible scenario testing framework (`backend/app/pipeline/scenario_runner.py`).
+- Complete database isolation (`sqlite:///:memory:`) guarantees zero state corruption of canonical data.
+- 10 deterministic operational stress scenarios evaluated and passing all invariant checks:
+  1. `SCN-01` Mega Block (High-density multi-department corridor bundling, 29.2h possession saved).
+  2. `SCN-02` Safety Escalation (Tier 1 emergency hard safety gate score 98.0 protected from displacement).
+  3. `SCN-03` Freight Squeeze (Dense freight timetable window contraction, 0 train/block collisions).
+  4. `SCN-04` Machine Transit (Disjunctive multi-depot transit buffers enforced, intentional clash caught by Sentinel).
+  5. `SCN-05` Power Block (25kV OHE electrical isolation synchronized with track work without clash).
+  6. `SCN-06` Train Delay Disruption (45m train delay re-solved in 0.05s preserving unaffected blocks).
+  7. `SCN-07` No Feasible Window (8h task in 2h gap gracefully unscheduled with `MAX_GAP_INSUFFICIENT` diagnosis).
+  8. `SCN-08` Resource Starvation (Single BCM machinery allocation strictly serialized).
+  9. `SCN-09` Bundle Compatibility (Compatible tasks merged, incompatible distant tasks isolated).
+  10. `SCN-10` Horizon Boundary (Exact-fit boundary and edge windows captured without silent task loss).
+- Automated regression test suite (`backend/tests/test_scenario_stress.py`) brings total backend tests to **29/29 passing**.
+- Full end-to-end pipeline verified (Ingestion $\rightarrow$ Data Quality $\rightarrow$ Features $\rightarrow$ ML v2 $\rightarrow$ Safety Gate $\rightarrow$ Windows $\rightarrow$ Bundling $\rightarrow$ CP-SAT $\rightarrow$ Sentinel $\rightarrow$ Benchmark $\rightarrow$ Re-solve $\rightarrow$ Audit).
+- Frontend production build verified (`npm run build`, 0 errors).
+- Fully documented in `SCENARIO_STRESS_TEST_REPORT.md` and `STAGE5_SYSTEM_VALIDATION_REPORT.md`.
+
