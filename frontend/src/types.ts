@@ -45,6 +45,50 @@ export interface MaintenanceRequest {
   unscheduled_reason?: string;
 }
 
+export interface MaintenanceRequestCreate {
+  department: 'ENGINEERING' | 'SIGNAL_TELECOM' | 'TRD';
+  source_system?: string;
+  asset_id?: string;
+  section_id: string;
+  track_id: string;
+  start_km: number;
+  end_km: number;
+  defect_type: string;
+  severity: 'EMERGENCY' | 'CRITICAL' | 'URGENT' | 'ROUTINE';
+  duration_minutes: number;
+  earliest_start: string;
+  latest_deadline: string;
+  speed_restriction_kmph?: number;
+  machinery_required?: string[];
+  power_block_required?: boolean;
+  elementary_section_id?: string;
+  scenario_tag?: string;
+  actor?: string;
+}
+
+export interface TrainCreate {
+  train_number: string;
+  train_name: string;
+  train_type?: string;
+  priority_rank?: number;
+  speed_factor?: number;
+  headway_buffer_mins?: number;
+  max_speed_kmph?: number;
+}
+
+export interface TimetableCreate {
+  train_number: string;
+  section_id: string;
+  track_id: string;
+  direction?: string;
+  scheduled_entry: string;
+  scheduled_exit: string;
+  transit_duration_mins?: number;
+  headway_buffer_mins?: number;
+  source?: string;
+  actor?: string;
+}
+
 export interface BlockPlanItem {
   item_id: string;
   plan_id: string;
@@ -256,5 +300,39 @@ export interface WhatIfResponse {
     reasons: string[];
     is_feasible: boolean;
   };
+}
+
+export interface ScenarioPreset {
+  id: string;
+  name: string;
+  description: string;
+  planning_days: number;
+  total_trains: number;
+  total_requests: number;
+}
+
+export interface ScenarioGenerationResult {
+  status: string;
+  scenario_id: string;
+  preset: string;
+  preset_name: string;
+  description: string;
+  seed: number;
+  trains_count: number;
+  timetable_count: number;
+  maintenance_requests_count: number;
+  tier1_emergencies_count: number;
+  high_risk_assets_count: number;
+  candidate_windows_count: number;
+  scheduled_tasks_count: number;
+  unscheduled_tasks_count: number;
+  active_bundles_count: number;
+  possession_hours_saved: number;
+  total_possession_hours: number;
+  solver_runtime_s: number;
+  validation_verdict: string;
+  plan_id: string;
+  audit_log_id: string;
+  message: string;
 }
 

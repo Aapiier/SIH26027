@@ -7,6 +7,8 @@ interface TopHeaderProps {
   activeTab: NavTab;
   metrics: DashboardMetrics | null;
   onRefresh: () => void;
+  onOpenSimulation?: () => void;
+  onOpenGenerateScenario?: () => void;
   loading: boolean;
 }
 
@@ -14,6 +16,8 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   activeTab,
   metrics,
   onRefresh,
+  onOpenSimulation,
+  onOpenGenerateScenario,
   loading,
 }) => {
   const titles: Record<NavTab, { title: string; subtitle: string }> = {
@@ -54,8 +58,34 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>
       </div>
 
-      {/* Right: Operational Status Badges & Refresh */}
+      {/* Right: Operational Status Badges & Refresh & Simulation */}
       <div className="flex items-center gap-3">
+        {/* Random Demo Data Generator Trigger */}
+        {onOpenGenerateScenario && (
+          <button
+            type="button"
+            onClick={onOpenGenerateScenario}
+            disabled={loading}
+            className="px-3 py-1.5 rounded-md bg-purple-600 hover:bg-purple-700 text-white border border-purple-700 text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all disabled:opacity-50"
+            title="Generate a fresh random railway simulation scenario"
+          >
+            <span>🎲 Generate Demo Data</span>
+          </button>
+        )}
+
+        {/* Live Manual Simulation Trigger */}
+        {onOpenSimulation && (
+          <button
+            type="button"
+            onClick={onOpenSimulation}
+            className="px-3 py-1.5 rounded-md bg-blue-600 hover:bg-blue-700 text-white border border-blue-700 text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all"
+            title="Open Interactive Live Demo Simulation Console"
+          >
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+            <span>+ Live Simulation</span>
+          </button>
+        )}
+
         {/* Corridor Badge */}
         <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-slate-50 border border-slate-200 text-xs text-slate-700">
           <MapPin className="w-3.5 h-3.5 text-slate-500" />

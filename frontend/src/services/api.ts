@@ -1,6 +1,9 @@
 import {
   DashboardMetrics,
   MaintenanceRequest,
+  MaintenanceRequestCreate,
+  TrainCreate,
+  TimetableCreate,
   BlockPlan,
   Station,
   TrackSection,
@@ -9,7 +12,9 @@ import {
   BenchmarkResponse,
   ValidationVerdict,
   OpportunityEvaluation,
-  WhatIfResponse
+  WhatIfResponse,
+  ScenarioPreset,
+  ScenarioGenerationResult
 } from '../types';
 
 const API_BASE = '/api/v1';
@@ -191,6 +196,71 @@ export async function simulateWhatIf(payload: {
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: 'Failed to execute what-if simulation' }));
     throw new Error(err.detail || 'Failed to execute what-if simulation');
+  }
+  return res.json();
+}
+
+export async function createMaintenanceTask(payload: MaintenanceRequestCreate): Promise<MaintenanceRequest> {
+  const res = await fetch(`${API_BASE}/tasks`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Failed to create maintenance task' }));
+    throw new Error(err.detail || 'Failed to create maintenance task');
+  }
+  return res.json();
+}
+
+export async function createTrain(payload: TrainCreate): Promise<any> {
+  const res = await fetch(`${API_BASE}/network/trains`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Failed to create train' }));
+    throw new Error(err.detail || 'Failed to create train');
+  }
+  return res.json();
+}
+
+export async function createTimetableEntry(payload: TimetableCreate): Promise<any> {
+  const res = await fetch(`${API_BASE}/network/timetable`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Failed to create timetable schedule' }));
+    throw new Error(err.detail || 'Failed to create timetable schedule');
+  }
+  return res.json();
+}
+
+export async function fetchScenarioPresets(): Promise<ScenarioPreset[]> {
+  const res = await fetch(`${API_BASE}/demo/presets`);
+  if (!res.ok) throw new Error('Failed to fetch scenario presets');
+  return res.json();
+}
+
+export async function triggerGenerateScenario(
+  preset: string = 'BALANCED_OPERATIONS',
+  seed?: number
+): Promise<ScenarioGenerationResult> {
+  const params = new URLSearchParams();
+  params.append('preset', preset);
+  if (seed !== undefined && seed !== null) {
+    params.append('seed', seed.toString());
+  }
+
+  const res = await fetch(`${API_BASE}/demo/generate-scenario?${params.toString()}`, {
+    method: 'POST'
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Failed to generate simulation scenario' }));
+    throw new Error(err.detail || 'Failed to generate simulation scenario');
   }
   return res.json();
 }

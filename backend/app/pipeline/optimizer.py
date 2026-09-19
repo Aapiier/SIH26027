@@ -103,6 +103,7 @@ def solve_maintenance_schedule(
     for w in windows:
         windows_by_track.setdefault(w.track_id, []).append(w)
 
+    task_window_vars: Dict[str, Dict[str, Any]] = {}
     for req_id, tv in task_vars.items():
         if tv["interval"] is None:
             continue
@@ -114,6 +115,7 @@ def solve_maintenance_schedule(
             continue
 
         in_win_bools = []
+        task_win_map = {}
         for w in track_windows:
             w_start = _dt_to_mins(w.window_start, base_epoch)
             w_end = _dt_to_mins(w.window_end, base_epoch)
@@ -126,6 +128,9 @@ def solve_maintenance_schedule(
             model.Add(tv["start"] >= w_start).OnlyEnforceIf(in_w)
             model.Add(tv["end"] <= w_end).OnlyEnforceIf(in_w)
             in_win_bools.append(in_w)
+            task_win_map[w.window_id] = (in_w, w_start, w_end)
+
+        task_window_vars[req_id] = task_win_map
 
         if in_win_bools:
             # If task is scheduled, exactly one window containment bool must be true
@@ -154,22 +159,38 @@ def solve_maintenance_schedule(
                 "req_ids": req_ids,
             }
 
-            # If bundle is active, all member tasks must be present
+            lead_tv = matching_tvs[0]
+            b_dur = bundle["bundled_duration_mins"]
+
+            # If bundle is active, all member tasks must be present and respect deadlines
             for tv in matching_tvs:
                 model.AddImplication(bundle_active, tv["present"])
+                # Bundle block end must not exceed any task's latest deadline
+                model.Add(lead_tv["start"] + b_dur <= tv["ld"]).OnlyEnforceIf(bundle_active)
+                model.Add(lead_tv["start"] >= tv["es"]).OnlyEnforceIf(bundle_active)
 
-            # Synchronize start time for all bundled tasks (joint possession start)
-            lead_tv = matching_tvs[0]
+            # Synchronize start time and window selection for all bundled tasks
+            lead_wins = task_window_vars.get(lead_tv["request"].request_id, {})
             for other_tv in matching_tvs[1:]:
                 model.Add(other_tv["start"] == lead_tv["start"]).OnlyEnforceIf(bundle_active)
+                other_wins = task_window_vars.get(other_tv["request"].request_id, {})
+                for w_id in set(lead_wins.keys()).intersection(set(other_wins.keys())):
+                    model.Add(lead_wins[w_id][0] == other_wins[w_id][0]).OnlyEnforceIf(bundle_active)
+
+            # Enforce bundled duration fits within the chosen window
+            for w_id, (in_w, w_start, w_end) in lead_wins.items():
+                if w_end - w_start >= b_dur:
+                    model.Add(lead_tv["start"] + b_dur <= w_end).OnlyEnforceIf([bundle_active, in_w])
+                else:
+                    model.Add(in_w == 0).OnlyEnforceIf(bundle_active)
 
             for rid in req_ids:
-                bundles_by_task[rid].append(bundle_active)
+                bundles_by_task[rid].append(bundle_vars[b_id])
 
     # Each task can participate in at most one active bundle
-    for rid, b_vars in bundles_by_task.items():
-        if len(b_vars) > 1:
-            model.Add(sum(b_vars) <= 1)
+    for rid, b_list in bundles_by_task.items():
+        if len(b_list) > 1:
+            model.Add(sum(bv["active_var"] for bv in b_list) <= 1)
 
     # -------------------------------------------------------------------------
     # 4. Physical Track-Level Conflict Constraints (NoOverlap)
@@ -201,11 +222,25 @@ def solve_maintenance_schedule(
                     model.Add(sum(shared_bundles) == 0).OnlyEnforceIf(same_bundle.Not())
 
                     model.Add(b["start"] >= a["end"]).OnlyEnforceIf([a_before_b, a["present"], b["present"], same_bundle.Not()])
+                    for bv_a in bundles_by_task.get(rid_a, []):
+                        b_dur_a = bv_a["bundle"]["bundled_duration_mins"]
+                        model.Add(b["start"] >= a["start"] + b_dur_a).OnlyEnforceIf([a_before_b, a["present"], b["present"], same_bundle.Not(), bv_a["active_var"]])
+
                     model.Add(a["start"] >= b["end"]).OnlyEnforceIf([a_before_b.Not(), a["present"], b["present"], same_bundle.Not()])
+                    for bv_b in bundles_by_task.get(rid_b, []):
+                        b_dur_b = bv_b["bundle"]["bundled_duration_mins"]
+                        model.Add(a["start"] >= b["start"] + b_dur_b).OnlyEnforceIf([a_before_b.Not(), a["present"], b["present"], same_bundle.Not(), bv_b["active_var"]])
                 else:
                     # Pure disjoint track occupancy
                     model.Add(b["start"] >= a["end"]).OnlyEnforceIf([a_before_b, a["present"], b["present"]])
+                    for bv_a in bundles_by_task.get(rid_a, []):
+                        b_dur_a = bv_a["bundle"]["bundled_duration_mins"]
+                        model.Add(b["start"] >= a["start"] + b_dur_a).OnlyEnforceIf([a_before_b, a["present"], b["present"], bv_a["active_var"]])
+
                     model.Add(a["start"] >= b["end"]).OnlyEnforceIf([a_before_b.Not(), a["present"], b["present"]])
+                    for bv_b in bundles_by_task.get(rid_b, []):
+                        b_dur_b = bv_b["bundle"]["bundled_duration_mins"]
+                        model.Add(a["start"] >= b["start"] + b_dur_b).OnlyEnforceIf([a_before_b.Not(), a["present"], b["present"], bv_b["active_var"]])
 
     # -------------------------------------------------------------------------
     # 5. Disjunctive Machinery Constraints (Transit time between sections)
@@ -222,11 +257,21 @@ def solve_maintenance_schedule(
                 if a["interval"] is None or b["interval"] is None:
                     continue
 
+                rid_a, rid_b = a["request"].request_id, b["request"].request_id
                 transit_buffer = 60 if a["request"].section_id != b["request"].section_id else 15
-                a_before_b = model.NewBoolVar(f"mach_{mach}_{a['request'].request_id}_before_{b['request'].request_id}")
+                a_before_b = model.NewBoolVar(f"mach_{mach}_{rid_a}_before_{rid_b}")
 
+                # If a is before b: b.start >= a.end + transit_buffer (account for bundle duration if a is bundled)
                 model.Add(b["start"] >= a["end"] + transit_buffer).OnlyEnforceIf([a_before_b, a["present"], b["present"]])
+                for bv_a in bundles_by_task.get(rid_a, []):
+                    b_dur_a = bv_a["bundle"]["bundled_duration_mins"]
+                    model.Add(b["start"] >= a["start"] + b_dur_a + transit_buffer).OnlyEnforceIf([a_before_b, a["present"], b["present"], bv_a["active_var"]])
+
+                # Symmetrically if b is before a
                 model.Add(a["start"] >= b["end"] + transit_buffer).OnlyEnforceIf([a_before_b.Not(), a["present"], b["present"]])
+                for bv_b in bundles_by_task.get(rid_b, []):
+                    b_dur_b = bv_b["bundle"]["bundled_duration_mins"]
+                    model.Add(a["start"] >= b["start"] + b_dur_b + transit_buffer).OnlyEnforceIf([a_before_b.Not(), a["present"], b["present"], bv_b["active_var"]])
 
     # -------------------------------------------------------------------------
     # 6. Multi-Objective Terms (Separation of Hard Rules and Soft Preferences)
@@ -254,7 +299,8 @@ def solve_maintenance_schedule(
     # -------------------------------------------------------------------------
     solver = cp_model.CpSolver()
     solver.parameters.max_time_in_seconds = max_solver_time_s
-    solver.parameters.num_search_workers = 8
+    solver.parameters.num_search_workers = 1
+    solver.parameters.random_seed = 42
     solver.parameters.log_search_progress = False
 
     solver_start = datetime.now()

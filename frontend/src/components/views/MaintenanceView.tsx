@@ -10,6 +10,7 @@ interface MaintenanceViewProps {
   onSelectTask: (taskId: string) => void;
   onNavigate: (tab: NavTab) => void;
   onPrioritize?: () => void;
+  onOpenSimulation?: () => void;
   loading?: boolean;
 }
 
@@ -18,6 +19,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
   onSelectTask,
   onNavigate,
   onPrioritize,
+  onOpenSimulation,
   loading = false,
 }) => {
   const [activeTab, setActiveTab] = useState<'ALL' | 'CRITICAL' | 'HIGH_RISK' | 'PLANNED' | 'UNSCHEDULED'>('ALL');
@@ -107,10 +109,21 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
               type="button"
               onClick={onPrioritize}
               disabled={loading}
-              className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-md shadow-sm flex items-center gap-1.5 transition-colors disabled:opacity-50"
+              className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-md border border-slate-300 shadow-sm flex items-center gap-1.5 transition-colors disabled:opacity-50"
             >
-              <Sparkles className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+              <Sparkles className={`w-3.5 h-3.5 text-blue-600 ${loading ? 'animate-spin' : ''}`} />
               <span>{loading ? 'Prioritizing...' : 'Prioritize Requests'}</span>
+            </button>
+          )}
+
+          {onOpenSimulation && (
+            <button
+              type="button"
+              onClick={onOpenSimulation}
+              className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-md shadow-sm flex items-center gap-1.5 transition-colors"
+            >
+              <Wrench className="w-3.5 h-3.5" />
+              <span>+ Inject Defect</span>
             </button>
           )}
         </div>

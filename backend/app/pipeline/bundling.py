@@ -24,7 +24,7 @@ def are_tasks_compatible(req_a: Dict[str, Any], req_b: Dict[str, Any]) -> bool:
     if mach_a & mach_b:
         return False
 
-    # 3. Temporal compatibility: overlapping deadline window
+    # 3. Temporal compatibility: overlapping deadline window with sufficient duration
     es_a = req_a.get("earliest_start")
     ld_a = req_a.get("latest_deadline")
     es_b = req_b.get("earliest_start")
@@ -35,8 +35,14 @@ def are_tasks_compatible(req_a: Dict[str, Any], req_b: Dict[str, Any]) -> bool:
     if isinstance(es_b, str): es_b = datetime.fromisoformat(es_b)
     if isinstance(ld_b, str): ld_b = datetime.fromisoformat(ld_b)
 
-    # Windows must overlap
-    if max(es_a, es_b) >= min(ld_a, ld_b):
+    dur_a = req_a.get("duration_minutes", 60)
+    dur_b = req_b.get("duration_minutes", 60)
+    bundled_dur = max(dur_a, dur_b)
+
+    # Windows must overlap and allow the full bundled duration
+    common_start = max(es_a, es_b)
+    common_end = min(ld_a, ld_b)
+    if (common_end - common_start).total_seconds() / 60 < bundled_dur:
         return False
 
     return True

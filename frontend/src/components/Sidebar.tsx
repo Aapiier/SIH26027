@@ -24,6 +24,8 @@ interface SidebarProps {
   activeTab: NavTab;
   onTabChange: (tab: NavTab) => void;
   onOpenHelp: () => void;
+  onOpenSimulation?: () => void;
+  onOpenGenerateScenario?: () => void;
   onResetDemo?: () => void;
   urgentCount?: number;
   disruptionCount?: number;
@@ -34,6 +36,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   activeTab,
   onTabChange,
   onOpenHelp,
+  onOpenSimulation,
+  onOpenGenerateScenario,
   onResetDemo,
   urgentCount = 0,
   disruptionCount = 0,
@@ -146,11 +150,43 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Demo Controls Header */}
-        <div className="pt-1">
+        <div className="pt-1 space-y-1.5">
           <div className="px-1 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
             <span>Demo Controls</span>
-            <span className="text-[9px] text-blue-400 font-mono">Canonical</span>
+            <span className="text-[9px] text-purple-400 font-mono">Multi-Case</span>
           </div>
+
+          {/* Random Scenario Generator Button */}
+          {onOpenGenerateScenario && (
+            <button
+              type="button"
+              onClick={onOpenGenerateScenario}
+              className="w-full flex items-center justify-between px-3.5 py-2 rounded-md text-xs font-semibold bg-purple-600 hover:bg-purple-500 text-white shadow-sm transition-all"
+              title="Generate a randomized simulation scenario with custom operational presets"
+            >
+              <div className="flex items-center gap-2">
+                <span>🎲</span>
+                <span>Generate Demo Data</span>
+              </div>
+              <span className="text-[10px] font-mono text-purple-200">Random</span>
+            </button>
+          )}
+
+          {/* Live Simulation Console Button */}
+          {onOpenSimulation && (
+            <button
+              type="button"
+              onClick={onOpenSimulation}
+              className="w-full flex items-center justify-between px-3.5 py-2 rounded-md text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white shadow-sm transition-all"
+              title="Manually create trains, defects, speed cautions, and disruptions"
+            >
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-300 animate-ping" />
+                <span>+ Live Simulation</span>
+              </div>
+              <span className="text-[10px] font-mono text-blue-100">Console</span>
+            </button>
+          )}
 
           {/* Reset Demo Button */}
           {onResetDemo && (
@@ -165,7 +201,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <RotateCcw className={`w-3.5 h-3.5 text-blue-400 ${resetting ? 'animate-spin' : ''}`} />
                 <span>{resetting ? 'Restoring Baseline...' : 'Reset Demo'}</span>
               </div>
-              <span className="text-[10px] font-mono text-blue-300">Prinstine</span>
+              <span className="text-[10px] font-mono text-blue-300">Pristine</span>
             </button>
           )}
         </div>

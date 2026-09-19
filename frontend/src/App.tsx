@@ -14,6 +14,8 @@ import { OverrideModal } from './components/OverrideModal';
 import { HelpModal } from './components/HelpModal';
 import { OpportunityDrawer } from './components/OpportunityDrawer';
 import { WhatIfModal } from './components/WhatIfModal';
+import { ManualSimulationModal } from './components/ManualSimulationModal';
+import { GenerateScenarioModal } from './components/GenerateScenarioModal';
 
 import {
   fetchMetrics,
@@ -71,6 +73,8 @@ export const App: React.FC = () => {
   const [isWhatIfOpen, setIsWhatIfOpen] = useState<boolean>(false);
   const [isBenchmarkOpen, setIsBenchmarkOpen] = useState<boolean>(false);
   const [isValidatorOpen, setIsValidatorOpen] = useState<boolean>(false);
+  const [isSimulationOpen, setIsSimulationOpen] = useState<boolean>(false);
+  const [isGenerateScenarioOpen, setIsGenerateScenarioOpen] = useState<boolean>(false);
   const [isHelpOpen, setIsHelpOpen] = useState<boolean>(false);
 
   const loadData = async () => {
@@ -253,6 +257,8 @@ export const App: React.FC = () => {
         activeTab={activeTab}
         onTabChange={setActiveTab}
         onOpenHelp={() => setIsHelpOpen(true)}
+        onOpenSimulation={() => setIsSimulationOpen(true)}
+        onOpenGenerateScenario={() => setIsGenerateScenarioOpen(true)}
         onResetDemo={handleResetDemo}
         resetting={loading}
         urgentCount={urgentCount}
@@ -265,6 +271,8 @@ export const App: React.FC = () => {
           activeTab={activeTab}
           metrics={metrics}
           onRefresh={loadData}
+          onOpenSimulation={() => setIsSimulationOpen(true)}
+          onOpenGenerateScenario={() => setIsGenerateScenarioOpen(true)}
           loading={loading}
         />
 
@@ -302,6 +310,7 @@ export const App: React.FC = () => {
               onSelectTask={handleSelectTask}
               onNavigate={setActiveTab}
               onPrioritize={handlePrioritize}
+              onOpenSimulation={() => setIsSimulationOpen(true)}
               loading={loading}
             />
           )}
@@ -390,6 +399,23 @@ export const App: React.FC = () => {
       <HelpModal
         isOpen={isHelpOpen}
         onClose={() => setIsHelpOpen(false)}
+      />
+
+      <ManualSimulationModal
+        isOpen={isSimulationOpen}
+        onClose={() => setIsSimulationOpen(false)}
+        onDataCreated={loadData}
+        onTriggerOptimizer={() => handleOptimize('WEEKLY')}
+        onTriggerPrioritize={handlePrioritize}
+        onOpenValidator={() => setIsValidatorOpen(true)}
+        onSimulateDisruption={handleDisruptionSubmit}
+      />
+
+      <GenerateScenarioModal
+        isOpen={isGenerateScenarioOpen}
+        onClose={() => setIsGenerateScenarioOpen(false)}
+        onScenarioGenerated={loadData}
+        onNavigateToPlan={() => setActiveTab('block-plan')}
       />
     </div>
   );

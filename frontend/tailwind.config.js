@@ -55,6 +55,16 @@ export default {
         deptSnt: '#d97706',      // S&T Amber
         deptTrd: '#7c3aed',      // Traction Purple
         deptBundle: '#15803d',   // Combined Green
+
+        // Dark Console Modal & Surface Tokens (High Contrast)
+        surface1: '#131b2e',
+        surface2: '#0d1322',
+        surface3: '#1e293d',
+        border1: '#26344d',
+        border2: '#3b4b68',
+        controlBg: '#182238',
+        controlBorder: '#2d3d5c',
+        controlText: '#f8fafc',
       },
       fontFamily: {
         sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],

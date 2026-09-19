@@ -88,6 +88,50 @@ class MaintenanceRequestSchema(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class MaintenanceRequestCreateSchema(BaseModel):
+    department: str
+    source_system: Optional[str] = "MANUAL_SIM"
+    asset_id: Optional[str] = None
+    section_id: str
+    track_id: str
+    start_km: float
+    end_km: float
+    defect_type: str
+    severity: str
+    duration_minutes: int
+    earliest_start: datetime
+    latest_deadline: datetime
+    speed_restriction_kmph: Optional[int] = 0
+    machinery_required: Optional[List[str]] = []
+    power_block_required: Optional[bool] = False
+    elementary_section_id: Optional[str] = None
+    scenario_tag: Optional[str] = "MANUAL_SIMULATION"
+    actor: Optional[str] = "DEMO_OPERATOR"
+
+
+class TrainCreateSchema(BaseModel):
+    train_number: str
+    train_name: str
+    train_type: str = "EXPRESS"
+    priority_rank: int = 3
+    speed_factor: float = 1.0
+    headway_buffer_mins: int = 10
+    max_speed_kmph: int = 110
+
+
+class TimetableCreateSchema(BaseModel):
+    train_number: str
+    section_id: str
+    track_id: str
+    direction: str = "UP"
+    scheduled_entry: datetime
+    scheduled_exit: datetime
+    transit_duration_mins: Optional[int] = None
+    headway_buffer_mins: Optional[int] = 10
+    source: Optional[str] = "MANUAL_SIMULATION"
+    actor: Optional[str] = "DEMO_OPERATOR"
+
+
 class TrainSchema(BaseModel):
     train_number: str
     train_name: str
