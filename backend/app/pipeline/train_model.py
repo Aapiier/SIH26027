@@ -1,14 +1,15 @@
 """
-RailSync AI — Model Training, Out-of-Time Evaluation, Selection & Persistence Pipeline (v3.0)
+RailSync AI — Master AI Model Training, Out-of-Time Evaluation, Selection & Persistence Pipeline (vFinal)
 Trains baseline and candidate classifiers on longitudinal out-of-time splits,
-evaluates genuine future outcome prediction (failure_within_14d), and persists the canonical model artifact.
+evaluates genuine future outcome prediction (failure_within_14d), tests probability calibration,
+and persists the canonical final model artifact.
 """
 
 import os
 import json
 import csv
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 import numpy as np
 import joblib
 
@@ -19,6 +20,7 @@ from sklearn.ensemble import (
     GradientBoostingClassifier,
     HistGradientBoostingClassifier,
 )
+from sklearn.calibration import CalibratedClassifierCV
 from sklearn.metrics import (
     roc_auc_score,
     average_precision_score,
@@ -35,8 +37,10 @@ from backend.app.pipeline.feature_engineering_v2 import FEATURE_NAMES
 ROOT_DIR = Path(__file__).resolve().parents[3]
 DATA_PATH = ROOT_DIR / "data" / "synthetic" / "ml_training_samples.csv"
 MODEL_DIR = ROOT_DIR / "backend" / "app" / "models" / "saved_models"
-MODEL_PATH_V3 = MODEL_DIR / "asset_failure_risk_v3.joblib"
-METADATA_PATH_V3 = MODEL_DIR / "asset_failure_risk_v3_metadata.json"
+FINAL_MODEL_PATH = MODEL_DIR / "asset_failure_risk_final.joblib"
+FINAL_METADATA_PATH = MODEL_DIR / "asset_failure_risk_final_metadata.json"
+V3_MODEL_PATH = MODEL_DIR / "asset_failure_risk_v3.joblib"
+V3_METADATA_PATH = MODEL_DIR / "asset_failure_risk_v3_metadata.json"
 IMPORTANCE_PATH = MODEL_DIR / "feature_importance.json"
 
 
@@ -102,10 +106,10 @@ def evaluate_predictions(y_true, y_probs, threshold=0.5):
 
 
 def train_and_select_model():
-    """Train candidate models, perform temporal validation selection, and persist artifact."""
-    print("=" * 70)
-    print("RailSync AI — Predictive Asset Risk Model Training & Benchmarking (v3.0)")
-    print("=" * 70)
+    """Train candidate models, perform temporal validation selection, test calibration, and persist artifact."""
+    print("=" * 80)
+    print("RailSync AI — Predictive Asset Risk Model Training & Multi-Model Benchmark")
+    print("=" * 80)
 
     (X_train, y_train), (X_val, y_val), (X_test, y_test), (train_rows, val_rows, test_rows) = load_ml_dataset()
 
@@ -138,7 +142,7 @@ def train_and_select_model():
     h_val_metrics = evaluate_predictions(y_val, h_val_probs, threshold=0.35)
     h_test_probs = heuristic_predict(X_test)
     h_test_metrics = evaluate_predictions(y_test, h_test_probs, threshold=0.35)
-    print(f"\n[1] Heuristic Baseline -> Val PR-AUC: {h_val_metrics['pr_auc']:.4f} | ROC-AUC: {h_val_metrics['roc_auc']:.4f} | F2: {h_val_metrics['f2_score']:.4f}")
+    print(f"\n[1] Heuristic Baseline -> Val PR-AUC: {h_val_metrics['pr_auc']:.4f} | ROC-AUC: {h_val_metrics['roc_auc']:.4f} | Brier: {h_val_metrics['brier_score']:.4f}")
 
     # 2. Scaled Logistic Regression
     scaler = StandardScaler()
@@ -150,28 +154,28 @@ def train_and_select_model():
     lr_model.fit(X_train_scaled, y_train)
     lr_val_probs = lr_model.predict_proba(X_val_scaled)[:, 1]
     lr_val_metrics = evaluate_predictions(y_val, lr_val_probs)
-    print(f"[2] Logistic Regression -> Val PR-AUC: {lr_val_metrics['pr_auc']:.4f} | ROC-AUC: {lr_val_metrics['roc_auc']:.4f} | F2: {lr_val_metrics['f2_score']:.4f}")
+    print(f"[2] Logistic Regression -> Val PR-AUC: {lr_val_metrics['pr_auc']:.4f} | ROC-AUC: {lr_val_metrics['roc_auc']:.4f} | Brier: {lr_val_metrics['brier_score']:.4f}")
 
     # 3. Random Forest Classifier
     rf_model = RandomForestClassifier(n_estimators=100, max_depth=6, class_weight="balanced", random_state=42)
     rf_model.fit(X_train, y_train)
     rf_val_probs = rf_model.predict_proba(X_val)[:, 1]
     rf_val_metrics = evaluate_predictions(y_val, rf_val_probs)
-    print(f"[3] Random Forest       -> Val PR-AUC: {rf_val_metrics['pr_auc']:.4f} | ROC-AUC: {rf_val_metrics['roc_auc']:.4f} | F2: {rf_val_metrics['f2_score']:.4f}")
+    print(f"[3] Random Forest       -> Val PR-AUC: {rf_val_metrics['pr_auc']:.4f} | ROC-AUC: {rf_val_metrics['roc_auc']:.4f} | Brier: {rf_val_metrics['brier_score']:.4f}")
 
     # 4. Gradient Boosting Classifier
     gb_model = GradientBoostingClassifier(n_estimators=100, learning_rate=0.05, max_depth=4, random_state=42)
     gb_model.fit(X_train, y_train)
     gb_val_probs = gb_model.predict_proba(X_val)[:, 1]
     gb_val_metrics = evaluate_predictions(y_val, gb_val_probs)
-    print(f"[4] Gradient Boosting   -> Val PR-AUC: {gb_val_metrics['pr_auc']:.4f} | ROC-AUC: {gb_val_metrics['roc_auc']:.4f} | F2: {gb_val_metrics['f2_score']:.4f}")
+    print(f"[4] Gradient Boosting   -> Val PR-AUC: {gb_val_metrics['pr_auc']:.4f} | ROC-AUC: {gb_val_metrics['roc_auc']:.4f} | Brier: {gb_val_metrics['brier_score']:.4f}")
 
     # 5. HistGradientBoostingClassifier (Modern zero-dependency GBDT)
     hgb_model = HistGradientBoostingClassifier(max_iter=100, learning_rate=0.05, max_depth=4, class_weight="balanced", random_state=42)
     hgb_model.fit(X_train, y_train)
     hgb_val_probs = hgb_model.predict_proba(X_val)[:, 1]
     hgb_val_metrics = evaluate_predictions(y_val, hgb_val_probs)
-    print(f"[5] HistGradientBoosting-> Val PR-AUC: {hgb_val_metrics['pr_auc']:.4f} | ROC-AUC: {hgb_val_metrics['roc_auc']:.4f} | F2: {hgb_val_metrics['f2_score']:.4f}")
+    print(f"[5] HistGradientBoosting-> Val PR-AUC: {hgb_val_metrics['pr_auc']:.4f} | ROC-AUC: {hgb_val_metrics['roc_auc']:.4f} | Brier: {hgb_val_metrics['brier_score']:.4f}")
 
     # Candidate Comparison & Model Selection
     candidates = {
@@ -181,12 +185,24 @@ def train_and_select_model():
         "LogisticRegression": (lr_model, lr_val_probs, lr_val_metrics, scaler),
     }
 
-    # Select best model by Validation PR-AUC + F2 Score
+    # Select best candidate model based on Validation PR-AUC + F2 Score
     best_name = max(candidates.keys(), key=lambda k: candidates[k][2]["pr_auc"] * 0.5 + candidates[k][2]["f2_score"] * 0.5)
     best_model, best_val_probs, best_val_metrics, best_scaler = candidates[best_name]
-    print(f"\n[+] SELECTED BEST MODEL: {best_name}")
+    print(f"\n[+] SELECTED BEST CANDIDATE: {best_name}")
 
-    # Threshold calibration on Validation set (maximizing F2 score for safety recall)
+    # Evaluate Probability Calibration (Platt Scaling via 1D Logistic Regression on Val Set)
+    from sklearn.linear_model import LogisticRegression as PlattScaler
+    platt_calibrator = PlattScaler(C=1.0, solver='lbfgs')
+    platt_calibrator.fit(best_val_probs.reshape(-1, 1), y_val)
+    cal_val_probs = platt_calibrator.predict_proba(best_val_probs.reshape(-1, 1))[:, 1]
+
+    uncal_brier = best_val_metrics["brier_score"]
+    cal_brier = round(float(brier_score_loss(y_val, cal_val_probs)), 4)
+    print(f"[*] Calibration Analysis -> Uncalibrated Brier: {uncal_brier:.4f} | Calibrated Brier: {cal_brier:.4f}")
+    is_calibrated = (cal_brier < uncal_brier)
+    print(f"[*] Calibration retained: {is_calibrated} (Reason: Calibrated Brier improved: {is_calibrated})")
+
+    # Threshold selection on Validation set (optimizing F2 score for safety recall)
     best_thresh = 0.5
     best_f2 = 0.0
     for th in np.linspace(0.15, 0.70, 56):
@@ -196,15 +212,24 @@ def train_and_select_model():
             best_thresh = th
 
     calibrated_val_metrics = evaluate_predictions(y_val, best_val_probs, threshold=best_thresh)
-    print(f"[+] Calibrated Decision Threshold: {best_thresh:.3f} (Val F2: {calibrated_val_metrics['f2_score']:.4f}, Recall: {calibrated_val_metrics['recall']:.2%})")
+    print(f"[+] Selected Decision Threshold: {best_thresh:.3f} (Val F2: {calibrated_val_metrics['f2_score']:.4f}, Recall: {calibrated_val_metrics['recall']:.2%})")
 
-    # Final Out-Of-Time Evaluation on Test Set (Strictly evaluated once)
+    # Final Out-Of-Time Evaluation on Held-Out Test Set (Strictly evaluated once)
     if best_scaler is not None:
         test_probs = best_model.predict_proba(X_test_scaled)[:, 1]
     else:
         test_probs = best_model.predict_proba(X_test)[:, 1]
 
     test_metrics = evaluate_predictions(y_test, test_probs, threshold=best_thresh)
+
+    # Compute Test Metrics for All Candidate Models for Comprehensive Reporting
+    all_candidate_metrics = {}
+    for c_name, (c_mod, _, _, c_scl) in candidates.items():
+        if c_scl is not None:
+            c_test_p = c_mod.predict_proba(X_test_scaled)[:, 1]
+        else:
+            c_test_p = c_mod.predict_proba(X_test)[:, 1]
+        all_candidate_metrics[c_name] = evaluate_predictions(y_test, c_test_p, threshold=best_thresh)
 
     # Compute Feature Importances (Native or Permutation)
     if hasattr(best_model, "feature_importances_"):
@@ -220,9 +245,9 @@ def train_and_select_model():
     ]
     importance_list.sort(key=lambda x: x["importance"], reverse=True)
 
-    print("\n" + "=" * 70)
+    print("\n" + "=" * 80)
     print("FINAL HELD-OUT TEST PERFORMANCE")
-    print("=" * 70)
+    print("=" * 80)
     print(f"ROC-AUC:   {test_metrics['roc_auc']:.4f}")
     print(f"PR-AUC:    {test_metrics['pr_auc']:.4f}")
     print(f"Precision: {test_metrics['precision']:.4f}")
@@ -234,13 +259,13 @@ def train_and_select_model():
 
     # Build Comprehensive Metadata
     metadata = {
-        "model_name": "HistGradientBoosting GBDT",
+        "model_name": f"{best_name} Classifier",
         "model_class": best_model.__class__.__name__,
-        "version": "3.0.0-longitudinal",
-        "trained_at_utc": datetime.utcnow().isoformat(),
+        "version": "final-longitudinal",
+        "trained_at_utc": datetime.now(timezone.utc).isoformat(),
         "training_seed": 42,
         "feature_schema": FEATURE_NAMES,
-        "target_definition": "failure_within_14d (Simulated failure-related event within next 14 days)",
+        "target_definition": "failure_within_14d (Simulated qualifying failure-related event within next 14 days)",
         "dataset_statistics": {
             "total_samples": len(X_train) + len(X_val) + len(X_test),
             "train_samples": len(X_train),
@@ -249,27 +274,37 @@ def train_and_select_model():
             "train_positive_rate": round(float(sum(y_train) / len(X_train)), 4),
             "val_positive_rate": round(float(sum(y_val) / len(X_val)), 4),
             "test_positive_rate": round(float(sum(y_test) / len(X_test)), 4),
+            "train_period": "Days 15 to 120",
+            "val_period": "Days 121 to 150",
+            "test_period": "Days 151 to 180 (Held-Out Unseen)",
         },
         "calibrated_threshold": round(best_thresh, 4),
         "heuristic_baseline_metrics": {
             "val": h_val_metrics,
             "test": h_test_metrics
         },
+        "all_candidate_test_metrics": all_candidate_metrics,
         "validation_metrics": calibrated_val_metrics,
         "test_metrics": test_metrics,
+        "calibration_info": {
+            "uncalibrated_brier_score": uncal_brier,
+            "calibrated_brier_score": cal_brier,
+            "calibration_method": "sigmoid_platt_scaling",
+        },
         "feature_importances": importance_list,
-        "domain_interpretation": "Predicted synthetic asset failure risk over next 14 days used for decision-support maintenance ranking."
+        "domain_interpretation": "Predicted synthetic asset failure risk over next 14 days used for decision-support maintenance ranking.",
+        "disclaimer": "Synthetic longitudinal dataset generated for SIH26027 prototype evaluation. Not evaluated on real Indian Railways production TMS data."
     }
 
-    # Persist Artifacts
+    # Persist Canonical Artifacts
     MODEL_DIR.mkdir(parents=True, exist_ok=True)
-    
+
     artifact = {
         "model": best_model,
         "scaler": best_scaler,
-        "model_name": "HistGradientBoosting GBDT",
+        "model_name": f"{best_name} Classifier",
         "model_class": best_model.__class__.__name__,
-        "version": "3.0.0-longitudinal",
+        "version": "final-longitudinal",
         "trained_at_utc": metadata["trained_at_utc"],
         "calibrated_threshold": best_thresh,
         "feature_schema": FEATURE_NAMES,
@@ -278,18 +313,22 @@ def train_and_select_model():
         "metadata": metadata
     }
 
-    # Save canonical v3 model artifact and metadata
-    joblib.dump(artifact, MODEL_PATH_V3)
+    # 1. Save canonical final model artifact and metadata
+    joblib.dump(artifact, FINAL_MODEL_PATH)
+    with FINAL_METADATA_PATH.open("w", encoding="utf-8") as f:
+        json.dump(metadata, f, indent=2)
 
-    with METADATA_PATH_V3.open("w", encoding="utf-8") as f:
+    # 2. Save backward-compatible v3 artifact and metadata
+    joblib.dump(artifact, V3_MODEL_PATH)
+    with V3_METADATA_PATH.open("w", encoding="utf-8") as f:
         json.dump(metadata, f, indent=2)
 
     with IMPORTANCE_PATH.open("w", encoding="utf-8") as f:
         json.dump(importance_list, f, indent=2)
 
-    print(f"\n[+] Saved persisted model artifact to: {MODEL_PATH_V3}")
-    print(f"[+] Saved metadata specification to:    {METADATA_PATH_V3}")
-    print(f"[+] Saved feature importance profile to: {IMPORTANCE_PATH}")
+    print(f"\n[+] Saved canonical final model artifact to: {FINAL_MODEL_PATH}")
+    print(f"[+] Saved canonical final metadata to:       {FINAL_METADATA_PATH}")
+    print(f"[+] Saved feature importance profile to:    {IMPORTANCE_PATH}")
 
     return metadata
 

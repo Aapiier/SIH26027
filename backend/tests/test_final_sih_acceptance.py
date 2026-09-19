@@ -52,8 +52,8 @@ def test_sih_ai_asset_risk_model_and_safety_gate():
     exp = exp_resp.json()
     
     ai_ctx = exp.get("ai_risk_context", {})
-    assert ai_ctx["model_name"] == "HistGradientBoosting GBDT"
-    assert "3.0" in ai_ctx["model_version"]
+    assert "HistGradientBoosting" in ai_ctx["model_name"]
+    assert "longitudinal" in ai_ctx["model_version"] or "3.0" in ai_ctx["model_version"]
     assert ai_ctx["prediction_target"] == "P(failure_within_14d)"
     assert 0.0 <= ai_ctx["predicted_failure_risk"] <= 1.0
     assert len(ai_ctx["feature_attributions"]) > 0

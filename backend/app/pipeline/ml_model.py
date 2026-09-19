@@ -13,9 +13,10 @@ import numpy as np
 from backend.app.pipeline.feature_engineering_v2 import extract_asset_features, feature_dict_to_vector, FEATURE_NAMES
 
 MODEL_DIR = Path(__file__).resolve().parents[1] / "models" / "saved_models"
-PRIMARY_MODEL_PATH = MODEL_DIR / "asset_failure_risk_v3.joblib"
+PRIMARY_MODEL_PATH = MODEL_DIR / "asset_failure_risk_final.joblib"
 FALLBACK_MODEL_PATHS = [
     PRIMARY_MODEL_PATH,
+    MODEL_DIR / "asset_failure_risk_v3.joblib",
 ]
 
 
