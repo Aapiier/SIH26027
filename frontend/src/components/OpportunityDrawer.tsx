@@ -57,76 +57,70 @@ export const OpportunityDrawer: React.FC<OpportunityDrawerProps> = ({
         {/* Content Body */}
         {loading ? (
           <div className="p-8 flex-1 flex flex-col items-center justify-center space-y-3">
-            <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin" />
-            <span className="text-xs text-slate-500 font-medium">Evaluating corridor opportunity scores...</span>
+            <div className="w-8 h-8 border-2 border-slate-700 border-t-transparent rounded-full animate-spin" />
+            <span className="text-xs text-slate-500 font-medium">Evaluating corridor candidate window scores...</span>
           </div>
         ) : opportunity ? (
           <div className="p-5 space-y-5 overflow-y-auto flex-1 text-xs">
-            {/* Opportunity Score Hero Card */}
-            <div className="p-4 rounded-xl bg-gradient-to-br from-slate-900 via-slate-800 to-blue-950 text-white shadow-md relative overflow-hidden">
+            {/* Opportunity Score Operational Summary Card */}
+            <div className="p-4 rounded-lg bg-slate-900 text-slate-100 border border-slate-800 shadow-sm">
               <div className="flex items-start justify-between">
                 <div>
-                  <div className="flex items-center gap-1.5 text-blue-300 font-semibold uppercase tracking-wider text-[11px]">
-                    <Zap className="w-3.5 h-3.5 text-blue-400" />
-                    <span>Maintenance Opportunity Score</span>
-                    <span
-                      title={opportunity.tooltip}
-                      className="cursor-help text-slate-400 hover:text-white transition"
-                    >
-                      <HelpCircle className="w-3 h-3" />
-                    </span>
+                  <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                    Window Opportunity Score
                   </div>
-                  <div className="mt-2 flex items-baseline gap-2">
-                    <span className="text-4xl font-extrabold tracking-tight text-white">{opportunity.score}</span>
-                    <span className="text-slate-400 text-sm font-semibold">/ 100</span>
-                    <span className="ml-2 px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
-                      Highest Operational Value
+                  <div className="mt-1.5 flex items-baseline gap-2">
+                    <span className="text-3xl font-extrabold tracking-tight font-mono text-white">
+                      {opportunity.score}
+                    </span>
+                    <span className="text-slate-400 text-xs font-semibold">/ 100</span>
+                    <span className="ml-2 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">
+                      OPTIMAL WINDOW
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* Tooltip description banner */}
-              <div className="mt-3 pt-3 border-t border-slate-700/60 text-[11px] text-slate-300 flex items-center gap-1.5">
-                <InfoIcon className="w-3.5 h-3.5 text-blue-300 shrink-0" />
-                <span>{opportunity.tooltip}</span>
+              {/* Context Summary */}
+              <div className="mt-3 pt-3 border-t border-slate-800 text-[11px] text-slate-300 leading-relaxed">
+                {opportunity.tooltip}
               </div>
             </div>
 
-            {/* Recommended Window Overview Card */}
+            {/* Recommended Window Technical Overview */}
             <div className="p-4 rounded-lg bg-slate-50 border border-slate-200 space-y-3">
               <h4 className="font-bold text-slate-900 uppercase tracking-wider text-[11px] flex items-center justify-between">
-                <span>Recommended Window Overview</span>
-                <span className="text-emerald-700 font-semibold lowercase">✓ optimal slot</span>
+                <span>Window Parameters</span>
+                <span className="text-emerald-700 font-semibold lowercase">✓ conflict-free</span>
               </h4>
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div>
-                  <span className="text-slate-500 text-[11px] block">Recommended Window</span>
-                  <strong className="text-slate-900 font-mono text-sm">{opportunity.recommended_window}</strong>
+                  <span className="text-slate-500 text-[11px] block">Recommended Time Slot</span>
+                  <strong className="text-slate-900 font-mono text-xs">{opportunity.recommended_window}</strong>
                 </div>
                 <div>
                   <span className="text-slate-500 text-[11px] block">Location Section</span>
-                  <strong className="text-slate-900 text-sm">{opportunity.section_id}</strong>
+                  <strong className="text-slate-900 text-xs">{opportunity.section_id}</strong>
                   <span className="text-slate-500 text-[10px] block font-mono">{opportunity.track_id}</span>
                 </div>
                 <div>
                   <span className="text-slate-500 text-[11px] block">Maintenance Scope</span>
-                  <strong className="text-slate-900">{opportunity.tasks_count} tasks included</strong>
+                  <strong className="text-slate-900">{opportunity.tasks_count} tasks bundled</strong>
                 </div>
                 <div>
-                  <span className="text-slate-500 text-[11px] block">Synchronized Depts</span>
+                  <span className="text-slate-500 text-[11px] block">Departments Involved</span>
                   <strong className="text-slate-900">{opportunity.departments.join(', ') || 'Multi-Dept'}</strong>
                 </div>
               </div>
             </div>
 
-            {/* Why This Window? (Bullet Explanations) */}
-            <div className="p-4 rounded-lg bg-emerald-50/70 border border-emerald-200 space-y-2.5">
-              <h4 className="font-bold text-emerald-950 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+            {/* Why It Works (Operational Factors) */}
+            <div className="p-4 rounded-lg bg-white border border-slate-200 space-y-2.5">
+              <h4 className="font-bold text-slate-900 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>Why this Window?</span>
+                <span>Why This Window Works</span>
               </h4>
-              <ul className="space-y-1.5 text-xs text-emerald-900 font-medium">
+              <ul className="space-y-1.5 text-xs text-slate-700 font-medium">
                 {opportunity.reasons.map((reason, idx) => (
                   <li key={idx} className="flex items-start gap-2">
                     <span className="text-emerald-600 font-bold shrink-0">✓</span>

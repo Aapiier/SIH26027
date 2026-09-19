@@ -7,9 +7,13 @@ import {
   AlertTriangle,
   FileText,
   HelpCircle,
-  Database,
   Train,
-  RotateCcw
+  RotateCcw,
+  Sparkles,
+  Layers,
+  Sliders,
+  Activity,
+  Database
 } from 'lucide-react';
 
 export type NavTab =
@@ -46,6 +50,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const navItems: Array<{
     id: NavTab;
     label: string;
+    description: string;
     icon: React.ComponentType<{ className?: string }>;
     badge?: number;
     badgeColor?: string;
@@ -53,11 +58,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
     {
       id: 'overview',
       label: 'Overview',
+      description: 'Operational briefing',
       icon: LayoutDashboard,
     },
     {
       id: 'maintenance',
-      label: 'Maintenance',
+      label: 'Maintenance Queue',
+      description: 'Requests & priorities',
       icon: ClipboardList,
       badge: urgentCount > 0 ? urgentCount : undefined,
       badgeColor: 'bg-red-500 text-white',
@@ -65,16 +72,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
     {
       id: 'block-plan',
       label: 'Block Plan',
+      description: 'Gantt & timetable schedule',
       icon: Calendar,
     },
     {
       id: 'network',
-      label: 'Network',
+      label: 'Corridor Network',
+      description: 'Topology & track status',
       icon: Network,
     },
     {
       id: 'disruptions',
       label: 'Disruptions',
+      description: 'Delays & re-planning',
       icon: AlertTriangle,
       badge: disruptionCount > 0 ? disruptionCount : undefined,
       badgeColor: 'bg-amber-500 text-white',
@@ -82,6 +92,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     {
       id: 'audit',
       label: 'Audit Trail',
+      description: 'Traceable operations log',
       icon: FileText,
     },
   ];

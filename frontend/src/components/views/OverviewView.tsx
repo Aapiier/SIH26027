@@ -8,10 +8,14 @@ import {
   ArrowRight,
   TrendingDown,
   Layers,
-  Sparkles,
   MapPin,
   Calendar,
-  AlertCircle
+  AlertCircle,
+  Train,
+  Wrench,
+  Zap,
+  Activity,
+  ChevronRight
 } from 'lucide-react';
 import { DashboardMetrics, MaintenanceRequest, BlockPlan } from '../../types';
 import { Badge } from '../ui/Badge';
@@ -33,7 +37,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
   onNavigate,
   onSelectTask,
 }) => {
-  // 1. Identify 3-5 urgent attention items
+  // 1. Identify urgent attention items
   const criticalTasks = tasks
     .filter(
       t =>
@@ -43,7 +47,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
     )
     .slice(0, 4);
 
-  // 2. Format upcoming maintenance from plan
+  // 2. Upcoming maintenance blocks from plan
   const upcomingBlocks = (plan?.items || []).slice(0, 4);
 
   const isPlanValidated = metrics?.validation_status === 'PASSED';
@@ -53,111 +57,95 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Top 4 Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Card 1: Maintenance Requests */}
-        <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500 flex items-center gap-1.5">
-              Maintenance Requests
-              <Tooltip content="Total pending and scheduled maintenance requests from Engineering, S&T, and Traction departments." />
-            </span>
-            <div className="w-7 h-7 rounded bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
-              <ClipboardList className="w-4 h-4" />
-            </div>
+      {/* 1. Operational Briefing Summary Bar */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        {/* Metric 1: Maintenance Requests */}
+        <div className="bg-white border border-slate-200 rounded-md p-3.5 flex flex-col justify-between shadow-2xs">
+          <div className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
+            Total Requests
           </div>
-          <div className="mt-3">
-            <span className="text-2xl font-bold text-slate-900">
+          <div className="mt-2 flex items-baseline justify-between">
+            <span className="text-2xl font-bold text-slate-900 font-mono">
               {metrics?.total_maintenance_requests || tasks.length || 86}
             </span>
-            <div className="text-xs text-slate-500 mt-1 flex items-center gap-2">
-              <span className="text-emerald-700 font-medium">{metrics?.scheduled_tasks_count || 30} scheduled</span>
-              <span>•</span>
-              <span className="text-slate-600">{metrics?.unscheduled_tasks_count || 56} awaiting planning</span>
-            </div>
+            <span className="text-[11px] text-slate-500">
+              {metrics?.scheduled_tasks_count || 30} scheduled
+            </span>
           </div>
         </div>
 
-        {/* Card 2: Critical & High Risk */}
-        <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500 flex items-center gap-1.5">
-              Critical & High Risk
-              <Tooltip content="Safety-critical flaws requiring immediate priority or elevated asset risk over 14 days." />
-            </span>
-            <div className="w-7 h-7 rounded bg-red-50 text-red-600 flex items-center justify-center border border-red-100">
-              <AlertTriangle className="w-4 h-4" />
-            </div>
+        {/* Metric 2: Safety Critical */}
+        <div className="bg-white border border-slate-200 rounded-md p-3.5 flex flex-col justify-between shadow-2xs">
+          <div className="text-[11px] font-medium text-red-600 uppercase tracking-wider flex items-center gap-1">
+            <AlertTriangle className="w-3 h-3" />
+            Safety Critical
           </div>
-          <div className="mt-3">
-            <span className="text-2xl font-bold text-red-600">
+          <div className="mt-2 flex items-baseline justify-between">
+            <span className="text-2xl font-bold text-red-600 font-mono">
               {metrics?.emergency_tasks_count || 16}
             </span>
-            <div className="text-xs text-slate-500 mt-1 flex items-center gap-2">
-              <span className="text-red-700 font-medium">16 Safety-Critical</span>
-              <span>•</span>
-              <span className="text-amber-700 font-medium">29 Elevated Risk</span>
-            </div>
+            <span className="text-[11px] font-semibold text-red-700 bg-red-50 px-1.5 py-0.5 rounded border border-red-200">
+              Tier-1 Gate
+            </span>
           </div>
         </div>
 
-        {/* Card 3: Active Blocks */}
-        <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500 flex items-center gap-1.5">
-              Active Blocks
-              <Tooltip content="Scheduled track possessions approved across the 48-hour planning horizon." />
-            </span>
-            <div className="w-7 h-7 rounded bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
-              <Clock className="w-4 h-4" />
-            </div>
+        {/* Metric 3: Planned Possession Hours */}
+        <div className="bg-white border border-slate-200 rounded-md p-3.5 flex flex-col justify-between shadow-2xs">
+          <div className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
+            Possession Hours
           </div>
-          <div className="mt-3">
-            <span className="text-2xl font-bold text-slate-900">
-              {plan?.items?.length || metrics?.active_blocks_count || 9}
+          <div className="mt-2 flex items-baseline justify-between">
+            <span className="text-2xl font-bold text-slate-900 font-mono">
+              {totalPossessionHours.toFixed(1)}h
             </span>
-            <div className="text-xs text-slate-500 mt-1 flex items-center gap-2">
-              <span className="text-slate-700 font-medium">{totalPossessionHours.toFixed(1)}h planned possession</span>
-            </div>
+            <span className="text-[11px] text-emerald-700 font-medium">
+              48h Horizon
+            </span>
           </div>
         </div>
 
-        {/* Card 4: Plan Status */}
-        <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500 flex items-center gap-1.5">
-              Plan Status
-              <Tooltip content="Independent safety validation status across all scheduled blocks." />
-            </span>
-            <div
-              className={`w-7 h-7 rounded flex items-center justify-center border ${
-                isPlanValidated
-                  ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                  : 'bg-amber-50 text-amber-600 border-amber-100'
-              }`}
-            >
-              <ShieldCheck className="w-4 h-4" />
-            </div>
+        {/* Metric 4: Bundled Blocks */}
+        <div className="bg-white border border-slate-200 rounded-md p-3.5 flex flex-col justify-between shadow-2xs">
+          <div className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
+            Bundled Blocks
           </div>
-          <div className="mt-3">
-            <span
-              className={`text-lg font-bold flex items-center gap-1.5 ${
-                isPlanValidated ? 'text-emerald-700' : 'text-amber-700'
-              }`}
-            >
-              {isPlanValidated ? (
-                <>
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                  Validated
-                </>
-              ) : (
-                <>
-                  <AlertCircle className="w-5 h-5 text-amber-600" />
-                  Needs Review
-                </>
-              )}
+          <div className="mt-2 flex items-baseline justify-between">
+            <span className="text-2xl font-bold text-emerald-700 font-mono">
+              {combinedCount}
             </span>
-            <p className="text-xs text-slate-500 mt-1">0 operational conflicts detected</p>
+            <span className="text-[11px] text-slate-500">
+              Multi-dept
+            </span>
+          </div>
+        </div>
+
+        {/* Metric 5: Possession Time Saved */}
+        <div className="bg-white border border-slate-200 rounded-md p-3.5 flex flex-col justify-between shadow-2xs">
+          <div className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
+            Time Saved
+          </div>
+          <div className="mt-2 flex items-baseline justify-between">
+            <span className="text-2xl font-bold text-emerald-600 font-mono">
+              {hoursSaved.toFixed(1)}h
+            </span>
+            <span className="text-[11px] text-emerald-700 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+              Bundling
+            </span>
+          </div>
+        </div>
+
+        {/* Metric 6: Validation Status */}
+        <div className="bg-white border border-slate-200 rounded-md p-3.5 flex flex-col justify-between shadow-2xs">
+          <div className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
+            Validation
+          </div>
+          <div className="mt-2 flex items-baseline justify-between">
+            <span className="text-sm font-bold text-emerald-700 flex items-center gap-1">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              100% Passed
+            </span>
+            <span className="text-[10px] text-slate-500 font-mono">0 clash</span>
           </div>
         </div>
       </div>

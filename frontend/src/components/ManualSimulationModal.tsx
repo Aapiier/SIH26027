@@ -306,36 +306,36 @@ export const ManualSimulationModal: React.FC<ManualSimulationModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 animate-fadeIn">
-      <div className="bg-[#0d1424] border border-slate-700/80 rounded-xl max-w-2xl w-full max-h-[88vh] flex flex-col shadow-2xl relative overflow-hidden text-slate-100">
+    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-fadeIn">
+      <div className="bg-white border border-slate-200 rounded-lg max-w-2xl w-full max-h-[88vh] flex flex-col shadow-xl relative overflow-hidden text-slate-900">
         {/* Header */}
-        <div className="px-5 py-3.5 bg-[#121a2f] border-b border-slate-800 flex items-center justify-between shrink-0">
+        <div className="px-5 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-lg bg-blue-950 text-blue-400 border border-blue-700/50">
-              <Sliders className="w-5 h-5 text-blue-400" />
+            <div className="p-2 rounded-md bg-blue-50 text-blue-700 border border-blue-200">
+              <Sliders className="w-5 h-5 text-blue-700" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-sm sm:text-base font-bold text-white tracking-wide">Manual Simulation & Live Demo Console</h3>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-900/60 text-blue-300 border border-blue-600/40">
-                  REAL-TIME DB & AI
+                <h3 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">Manual Simulation & Live Demo Console</h3>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 font-semibold">
+                  Relational DB & Pipeline
                 </span>
               </div>
-              <p className="text-xs text-slate-400">
-                Directly inject defects, trains, and operational constraints into the live optimization model.
+              <p className="text-xs text-slate-500">
+                Directly inject defects, trains, and operational constraints into the live planning model.
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="p-1.5 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex border-b border-slate-800 bg-[#10172a] px-5 pt-1.5 shrink-0 gap-1">
+        <div className="flex border-b border-slate-200 bg-slate-50 px-5 pt-1.5 shrink-0 gap-1">
           <button
             type="button"
             onClick={() => {
@@ -345,8 +345,8 @@ export const ManualSimulationModal: React.FC<ManualSimulationModalProps> = ({
             }}
             className={`pb-2.5 px-3.5 text-xs font-semibold flex items-center gap-1.5 border-b-2 transition-colors ${
               activeTab === 'task'
-                ? 'border-blue-500 text-blue-400 bg-blue-950/20'
-                : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+                ? 'border-blue-600 text-blue-700 bg-white shadow-2xs rounded-t-md'
+                : 'border-transparent text-slate-600 hover:text-slate-900'
             }`}
           >
             <Wrench className="w-3.5 h-3.5" />
@@ -361,8 +361,8 @@ export const ManualSimulationModal: React.FC<ManualSimulationModalProps> = ({
             }}
             className={`pb-2.5 px-3.5 text-xs font-semibold flex items-center gap-1.5 border-b-2 transition-colors ${
               activeTab === 'train'
-                ? 'border-blue-500 text-blue-400 bg-blue-950/20'
-                : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+                ? 'border-blue-600 text-blue-700 bg-white shadow-2xs rounded-t-md'
+                : 'border-transparent text-slate-600 hover:text-slate-900'
             }`}
           >
             <Train className="w-3.5 h-3.5" />
@@ -377,8 +377,8 @@ export const ManualSimulationModal: React.FC<ManualSimulationModalProps> = ({
             }}
             className={`pb-2.5 px-3.5 text-xs font-semibold flex items-center gap-1.5 border-b-2 transition-colors ${
               activeTab === 'disruption'
-                ? 'border-blue-500 text-blue-400 bg-blue-950/20'
-                : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+                ? 'border-blue-600 text-blue-700 bg-white shadow-2xs rounded-t-md'
+                : 'border-transparent text-slate-600 hover:text-slate-900'
             }`}
           >
             <AlertTriangle className="w-3.5 h-3.5" />
@@ -387,46 +387,46 @@ export const ManualSimulationModal: React.FC<ManualSimulationModalProps> = ({
         </div>
 
         {/* Modal Body (Scrollable) */}
-        <div className="p-4 sm:p-5 overflow-y-auto space-y-3.5 text-xs flex-1">
+        <div className="p-4 sm:p-5 overflow-y-auto space-y-4 text-xs flex-1">
           {/* Success Banner */}
           {successInfo && (
-            <div className="p-3 rounded-lg bg-emerald-950/80 border border-emerald-700 text-emerald-200 space-y-2">
+            <div className="p-3.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-900 space-y-2">
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                 <span className="font-semibold text-xs">{successInfo.details}</span>
               </div>
-              <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-emerald-800/50">
-                <span className="text-[11px] text-emerald-300 font-semibold">Next Actions:</span>
+              <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-emerald-200">
+                <span className="text-[11px] text-emerald-800 font-semibold">Next Actions:</span>
                 <button
                   type="button"
                   onClick={async () => {
                     await onTriggerOptimizer();
                     onClose();
                   }}
-                  className="px-2.5 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white font-semibold text-[11px] flex items-center gap-1 shadow-sm transition"
+                  className="px-2.5 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[11px] flex items-center gap-1 shadow-2xs transition"
                 >
                   <Play className="w-3 h-3 fill-current" />
-                  <span>Run CP-SAT Optimizer</span>
+                  <span>Run Master Optimizer</span>
                 </button>
                 <button
                   type="button"
                   onClick={async () => {
                     await onTriggerPrioritize();
                   }}
-                  className="px-2.5 py-1 rounded bg-[#17223b] hover:bg-slate-700 text-blue-300 font-semibold text-[11px] border border-blue-500/30 flex items-center gap-1 transition"
+                  className="px-2.5 py-1 rounded bg-white hover:bg-slate-50 text-blue-700 font-semibold text-[11px] border border-slate-300 flex items-center gap-1 transition shadow-2xs"
                 >
-                  <Zap className="w-3 h-3 text-blue-400" />
-                  <span>Recalculate AI Priorities</span>
+                  <Activity className="w-3 h-3 text-blue-600" />
+                  <span>Update Prioritization</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => {
                     onOpenValidator();
                   }}
-                  className="px-2.5 py-1 rounded bg-emerald-900/80 hover:bg-emerald-800 text-emerald-200 font-semibold text-[11px] border border-emerald-600/40 flex items-center gap-1 transition"
+                  className="px-2.5 py-1 rounded bg-white hover:bg-slate-50 text-emerald-700 font-semibold text-[11px] border border-emerald-300 flex items-center gap-1 transition shadow-2xs"
                 >
-                  <ShieldCheck className="w-3 h-3 text-emerald-400" />
-                  <span>Sentinel Validate</span>
+                  <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                  <span>Validate Schedule</span>
                 </button>
               </div>
             </div>
@@ -434,8 +434,8 @@ export const ManualSimulationModal: React.FC<ManualSimulationModalProps> = ({
 
           {/* Error Banner */}
           {errorMessage && (
-            <div className="p-3 rounded-lg bg-red-950/80 border border-red-700 text-red-200 flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+            <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-800 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />
               <span>{errorMessage}</span>
             </div>
           )}
@@ -444,39 +444,39 @@ export const ManualSimulationModal: React.FC<ManualSimulationModalProps> = ({
           {activeTab === 'task' && (
             <form onSubmit={handleCreateTask} className="space-y-3.5">
               {/* Quick Presets */}
-              <div className="bg-[#121a2f] p-2.5 rounded-lg border border-slate-800 space-y-1.5">
+              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1">
-                    <Flame className="w-3.5 h-3.5 text-amber-400" /> 1-Click Live Demo Presets:
+                  <span className="text-[11px] font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                    <Flame className="w-3.5 h-3.5 text-amber-600" /> 1-Click Operational Presets:
                   </span>
-                  <span className="text-[10px] text-slate-400">Pre-populates realistic parameters</span>
+                  <span className="text-[10px] text-slate-500 font-medium">Pre-populates realistic parameters</span>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
                   <button
                     type="button"
                     onClick={() => applyTaskPreset('emergency_rail')}
-                    className="p-1.5 rounded bg-rose-950/40 hover:bg-rose-900/60 border border-rose-800/50 text-rose-300 text-[11px] text-left transition font-mono"
+                    className="p-2 rounded bg-white hover:bg-rose-50 border border-rose-200 text-rose-800 text-[11px] text-left transition font-medium shadow-2xs"
                   >
                     ⚠️ Rail Fracture (ENG)
                   </button>
                   <button
                     type="button"
                     onClick={() => applyTaskPreset('ohe_flash')}
-                    className="p-1.5 rounded bg-amber-950/40 hover:bg-amber-900/60 border border-amber-800/50 text-amber-300 text-[11px] text-left transition font-mono"
+                    className="p-2 rounded bg-white hover:bg-amber-50 border border-amber-200 text-amber-800 text-[11px] text-left transition font-medium shadow-2xs"
                   >
                     ⚡ OHE Flash (TRD)
                   </button>
                   <button
                     type="button"
                     onClick={() => applyTaskPreset('signal_drop')}
-                    className="p-1.5 rounded bg-purple-950/40 hover:bg-purple-900/60 border border-purple-800/50 text-purple-300 text-[11px] text-left transition font-mono"
+                    className="p-2 rounded bg-white hover:bg-purple-50 border border-purple-200 text-purple-800 text-[11px] text-left transition font-medium shadow-2xs"
                   >
                     🔴 Point Fail (S&T)
                   </button>
                   <button
                     type="button"
                     onClick={() => applyTaskPreset('ultrasonic_flaw')}
-                    className="p-1.5 rounded bg-blue-950/40 hover:bg-blue-900/60 border border-blue-800/50 text-blue-300 text-[11px] text-left transition font-mono"
+                    className="p-2 rounded bg-white hover:bg-blue-50 border border-blue-200 text-blue-800 text-[11px] text-left transition font-medium shadow-2xs"
                   >
                     🔧 IMR Flaw (ENG)
                   </button>
@@ -484,77 +484,77 @@ export const ManualSimulationModal: React.FC<ManualSimulationModalProps> = ({
               </div>
 
               {/* Form Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-300 mb-1 font-semibold text-[11px] uppercase tracking-wider">Department:</label>
+                  <label className="block text-slate-700 mb-1 font-semibold text-[11px] uppercase tracking-wider">Department:</label>
                   <select
                     value={department}
                     onChange={e => setDepartment(e.target.value as any)}
-                    className="w-full bg-[#162035] border border-slate-700 rounded-md px-3 py-1.5 text-white font-mono text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-colors"
+                    className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-slate-900 font-medium text-xs focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none transition-colors"
                   >
-                    <option value="ENGINEERING" className="bg-[#162035] text-white">Engineering (Civil / Track)</option>
-                    <option value="SIGNAL_TELECOM" className="bg-[#162035] text-white">Signal & Telecom (S&T)</option>
-                    <option value="TRD" className="bg-[#162035] text-white">TRD (Traction / Overhead OHE)</option>
+                    <option value="ENGINEERING">Engineering (Civil / Track)</option>
+                    <option value="SIGNAL_TELECOM">Signal & Telecom (S&T)</option>
+                    <option value="TRD">TRD (Traction / Overhead OHE)</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 mb-1 font-semibold text-[11px] uppercase tracking-wider">Defect Type / Issue:</label>
+                  <label className="block text-slate-700 mb-1 font-semibold text-[11px] uppercase tracking-wider">Defect Type / Issue:</label>
                   <input
                     type="text"
                     value={defectType}
                     onChange={e => setDefectType(e.target.value)}
                     required
-                    className="w-full bg-[#162035] border border-slate-700 rounded-md px-3 py-1.5 text-white font-mono text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-colors"
+                    className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-slate-900 font-medium text-xs focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none transition-colors font-mono"
                     placeholder="e.g. RAIL_FRACTURE_RISK"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 mb-1 font-semibold text-[11px] uppercase tracking-wider">Section ID:</label>
+                  <label className="block text-slate-700 mb-1 font-semibold text-[11px] uppercase tracking-wider">Section ID:</label>
                   <select
                     value={sectionId}
                     onChange={e => handleSectionChange(e.target.value)}
-                    className="w-full bg-[#162035] border border-slate-700 rounded-md px-3 py-1.5 text-white font-mono text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-colors"
+                    className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-slate-900 font-medium text-xs focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none transition-colors font-mono"
                   >
-                    <option value="NDLS-GZB" className="bg-[#162035] text-white">NDLS-GZB (New Delhi – Ghaziabad)</option>
-                    <option value="GZB-ALJN" className="bg-[#162035] text-white">GZB-ALJN (Ghaziabad – Aligarh)</option>
-                    <option value="ALJN-TDL" className="bg-[#162035] text-white">ALJN-TDL (Aligarh – Tundla)</option>
-                    <option value="TDL-ETW" className="bg-[#162035] text-white">TDL-ETW (Tundla – Etawah)</option>
-                    <option value="ETW-CNB" className="bg-[#162035] text-white">ETW-CNB (Etawah – Kanpur)</option>
-                    <option value="CNB-FTP" className="bg-[#162035] text-white">CNB-FTP (Kanpur – Fatehpur)</option>
-                    <option value="FTP-PRYJ" className="bg-[#162035] text-white">FTP-PRYJ (Fatehpur – Prayagraj)</option>
+                    <option value="NDLS-GZB">NDLS-GZB (New Delhi – Ghaziabad)</option>
+                    <option value="GZB-ALJN">GZB-ALJN (Ghaziabad – Aligarh)</option>
+                    <option value="ALJN-TDL">ALJN-TDL (Aligarh – Tundla)</option>
+                    <option value="TDL-ETW">TDL-ETW (Tundla – Etawah)</option>
+                    <option value="ETW-CNB">ETW-CNB (Etawah – Kanpur)</option>
+                    <option value="CNB-FTP">CNB-FTP (Kanpur – Fatehpur)</option>
+                    <option value="FTP-PRYJ">FTP-PRYJ (Fatehpur – Prayagraj)</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 mb-1 font-semibold text-[11px] uppercase tracking-wider">Physical Track ID:</label>
+                  <label className="block text-slate-700 mb-1 font-semibold text-[11px] uppercase tracking-wider">Physical Track ID:</label>
                   <select
                     value={trackId}
                     onChange={e => setTrackId(e.target.value)}
-                    className="w-full bg-[#162035] border border-slate-700 rounded-md px-3 py-1.5 text-white font-mono text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-colors"
+                    className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-slate-900 font-medium text-xs focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none transition-colors font-mono"
                   >
-                    <option value={`${sectionId}-UP`} className="bg-[#162035] text-white">{sectionId}-UP (Up Track)</option>
-                    <option value={`${sectionId}-DOWN`} className="bg-[#162035] text-white">{sectionId}-DOWN (Down Track)</option>
+                    <option value={`${sectionId}-UP`}>{sectionId}-UP (Up Track)</option>
+                    <option value={`${sectionId}-DOWN`}>{sectionId}-DOWN (Down Track)</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 mb-1 font-semibold text-[11px] uppercase tracking-wider">Severity / Urgency:</label>
+                  <label className="block text-slate-700 mb-1 font-semibold text-[11px] uppercase tracking-wider">Severity / Urgency:</label>
                   <select
                     value={severity}
                     onChange={e => setSeverity(e.target.value as any)}
-                    className="w-full bg-[#162035] border border-slate-700 rounded-md px-3 py-1.5 text-white font-mono text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-colors"
+                    className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-slate-900 font-medium text-xs focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none transition-colors"
                   >
-                    <option value="EMERGENCY" className="bg-[#162035] text-white">EMERGENCY (Tier 1 Priority 98.0)</option>
-                    <option value="CRITICAL" className="bg-[#162035] text-white">CRITICAL (Tier 1.5 Priority 80–95)</option>
-                    <option value="URGENT" className="bg-[#162035] text-white">URGENT (ML Weighted)</option>
-                    <option value="ROUTINE" className="bg-[#162035] text-white">ROUTINE (Deferred Maintenance)</option>
+                    <option value="EMERGENCY">EMERGENCY (Tier 1 Priority 98.0)</option>
+                    <option value="CRITICAL">CRITICAL (Tier 1.5 Priority 80–95)</option>
+                    <option value="URGENT">URGENT (ML Weighted)</option>
+                    <option value="ROUTINE">ROUTINE (Deferred Maintenance)</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 mb-1 font-semibold text-[11px] uppercase tracking-wider">Duration (Minutes):</label>
+                  <label className="block text-slate-700 mb-1 font-semibold text-[11px] uppercase tracking-wider">Duration (Minutes):</label>
                   <input
                     type="number"
                     min="15"
@@ -563,19 +563,19 @@ export const ManualSimulationModal: React.FC<ManualSimulationModalProps> = ({
                     value={durationMinutes}
                     onChange={e => setDurationMinutes(Number(e.target.value))}
                     required
-                    className="w-full bg-[#162035] border border-slate-700 rounded-md px-3 py-1.5 text-white font-mono text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-colors"
+                    className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-slate-900 font-mono text-xs focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none transition-colors"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 mb-1 font-semibold text-[11px] uppercase tracking-wider">Start Km – End Km:</label>
+                  <label className="block text-slate-700 mb-1 font-semibold text-[11px] uppercase tracking-wider">Start Km – End Km:</label>
                   <div className="flex gap-2">
                     <input
                       type="number"
                       step="0.1"
                       value={startKm}
                       onChange={e => setStartKm(Number(e.target.value))}
-                      className="w-1/2 bg-[#162035] border border-slate-700 rounded-md px-2.5 py-1.5 text-white font-mono text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-colors"
+                      className="w-1/2 bg-white border border-slate-300 rounded-md px-2.5 py-1.5 text-slate-900 font-mono text-xs focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none transition-colors"
                       placeholder="Start Km"
                     />
                     <input
@@ -583,54 +583,54 @@ export const ManualSimulationModal: React.FC<ManualSimulationModalProps> = ({
                       step="0.1"
                       value={endKm}
                       onChange={e => setEndKm(Number(e.target.value))}
-                      className="w-1/2 bg-[#162035] border border-slate-700 rounded-md px-2.5 py-1.5 text-white font-mono text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-colors"
+                      className="w-1/2 bg-white border border-slate-300 rounded-md px-2.5 py-1.5 text-slate-900 font-mono text-xs focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none transition-colors"
                       placeholder="End Km"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 mb-1 font-semibold text-[11px] uppercase tracking-wider">Speed Restriction (km/h caution):</label>
+                  <label className="block text-slate-700 mb-1 font-semibold text-[11px] uppercase tracking-wider">Speed Restriction (km/h):</label>
                   <input
                     type="number"
                     min="0"
                     max="110"
                     value={speedRestriction}
                     onChange={e => setSpeedRestriction(Number(e.target.value))}
-                    className="w-full bg-[#162035] border border-slate-700 rounded-md px-3 py-1.5 text-white font-mono text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-colors"
+                    className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-slate-900 font-mono text-xs focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none transition-colors"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 mb-1 font-semibold text-[11px] uppercase tracking-wider">Earliest Window Start:</label>
+                  <label className="block text-slate-700 mb-1 font-semibold text-[11px] uppercase tracking-wider">Earliest Window Start:</label>
                   <input
                     type="datetime-local"
                     value={earliestStart}
                     onChange={e => setEarliestStart(e.target.value)}
                     required
-                    className="w-full bg-[#162035] border border-slate-700 rounded-md px-3 py-1.5 text-white font-mono text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-colors"
+                    className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-slate-900 font-mono text-xs focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none transition-colors"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 mb-1 font-semibold text-[11px] uppercase tracking-wider">Latest Safe Deadline:</label>
+                  <label className="block text-slate-700 mb-1 font-semibold text-[11px] uppercase tracking-wider">Latest Safe Deadline:</label>
                   <input
                     type="datetime-local"
                     value={latestDeadline}
                     onChange={e => setLatestDeadline(e.target.value)}
                     required
-                    className="w-full bg-[#162035] border border-slate-700 rounded-md px-3 py-1.5 text-white font-mono text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-colors"
+                    className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-slate-900 font-mono text-xs focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none transition-colors"
                   />
                 </div>
               </div>
 
               {/* Machinery & Power Block Checkboxes */}
-              <div className="p-2.5 bg-[#121a2f] rounded-lg border border-slate-800 flex flex-wrap items-center justify-between gap-3">
+              <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <span className="block text-slate-300 mb-1 font-semibold text-[11px] uppercase tracking-wider">Machinery Needed:</span>
-                  <div className="flex flex-wrap gap-2.5">
+                  <span className="block text-slate-700 mb-1.5 font-semibold text-[11px] uppercase tracking-wider">Machinery Needed:</span>
+                  <div className="flex flex-wrap gap-3">
                     {['TAMPING_MACHINE', 'BCM', 'UNIMAT', 'TOWER_WAGON', 'CREW_TEAM'].map(m => (
-                      <label key={m} className="flex items-center gap-1.5 text-slate-300 font-mono text-[11px] cursor-pointer">
+                      <label key={m} className="flex items-center gap-1.5 text-slate-700 font-mono text-[11px] cursor-pointer">
                         <input
                           type="checkbox"
                           checked={machinery.includes(m)}
@@ -641,7 +641,7 @@ export const ManualSimulationModal: React.FC<ManualSimulationModalProps> = ({
                               setMachinery(machinery.filter(x => x !== m));
                             }
                           }}
-                          className="rounded bg-[#162035] border-slate-600 text-blue-500 focus:ring-0 w-3.5 h-3.5"
+                          className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5"
                         />
                         <span>{m}</span>
                       </label>
@@ -649,32 +649,32 @@ export const ManualSimulationModal: React.FC<ManualSimulationModalProps> = ({
                   </div>
                 </div>
 
-                <label className="flex items-center gap-1.5 text-amber-300 font-semibold cursor-pointer pt-1 text-xs">
+                <label className="flex items-center gap-1.5 text-amber-800 font-semibold cursor-pointer pt-1 text-xs">
                   <input
                     type="checkbox"
                     checked={powerBlock}
                     onChange={e => setPowerBlock(e.target.checked)}
-                    className="rounded bg-[#162035] border-amber-600 text-amber-500 focus:ring-0 w-3.5 h-3.5"
+                    className="rounded border-amber-400 text-amber-600 focus:ring-amber-500 w-3.5 h-3.5"
                   />
                   <span>⚡ OHE Power Block</span>
                 </label>
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-medium transition border border-slate-700/60"
+                  className="px-3.5 py-1.5 rounded-md bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition border border-slate-300 shadow-2xs"
                 >
-                  Close
+                  Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs flex items-center gap-1.5 shadow-md transition disabled:opacity-50"
+                  className="px-4 py-1.5 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex items-center gap-1.5 shadow-2xs transition disabled:opacity-50"
                 >
                   <PlusCircle className="w-4 h-4" />
-                  <span>{submitting ? 'Computing AI...' : 'Create & Prioritize Task'}</span>
+                  <span>{submitting ? 'Prioritizing...' : 'Create & Prioritize Task'}</span>
                 </button>
               </div>
             </form>
@@ -684,32 +684,32 @@ export const ManualSimulationModal: React.FC<ManualSimulationModalProps> = ({
           {activeTab === 'train' && (
             <form onSubmit={handleCreateTrain} className="space-y-3.5">
               {/* Quick Presets */}
-              <div className="bg-[#121a2f] p-2.5 rounded-lg border border-slate-800 space-y-1.5">
+              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1">
-                    <Train className="w-3.5 h-3.5 text-blue-400" /> 1-Click Train Presets:
+                  <span className="text-[11px] font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                    <Train className="w-3.5 h-3.5 text-blue-600" /> 1-Click Train Presets:
                   </span>
-                  <span className="text-[10px] text-slate-400">Inserts into live corridor timetable</span>
+                  <span className="text-[10px] text-slate-500 font-medium">Inserts into live corridor timetable</span>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
                   <button
                     type="button"
                     onClick={() => applyTrainPreset('vande_bharat')}
-                    className="p-1.5 rounded bg-blue-950/40 hover:bg-blue-900/60 border border-blue-800/50 text-blue-300 text-[11px] text-left transition font-mono"
+                    className="p-2 rounded bg-white hover:bg-blue-50 border border-blue-200 text-blue-800 text-[11px] text-left transition font-medium shadow-2xs"
                   >
                     🚄 Vande Bharat Spl
                   </button>
                   <button
                     type="button"
                     onClick={() => applyTrainPreset('heavy_freight')}
-                    className="p-1.5 rounded bg-emerald-950/40 hover:bg-emerald-900/60 border border-emerald-800/50 text-emerald-300 text-[11px] text-left transition font-mono"
+                    className="p-2 rounded bg-white hover:bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] text-left transition font-medium shadow-2xs"
                   >
                     📦 Coal Freight Rake
                   </button>
                   <button
                     type="button"
                     onClick={() => applyTrainPreset('rajdhani_spl')}
-                    className="p-1.5 rounded bg-purple-950/40 hover:bg-purple-900/60 border border-purple-800/50 text-purple-300 text-[11px] text-left transition font-mono"
+                    className="p-2 rounded bg-white hover:bg-purple-50 border border-purple-200 text-purple-800 text-[11px] text-left transition font-medium shadow-2xs"
                   >
                     🚆 Rajdhani Special
                   </button>
@@ -717,126 +717,126 @@ export const ManualSimulationModal: React.FC<ManualSimulationModalProps> = ({
               </div>
 
               {/* Form Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-300 mb-1 font-semibold text-[11px] uppercase tracking-wider">Train Number:</label>
+                  <label className="block text-slate-700 mb-1 font-semibold text-[11px] uppercase tracking-wider">Train Number:</label>
                   <input
                     type="text"
                     value={trainNumber}
                     onChange={e => setTrainNumber(e.target.value)}
                     required
-                    className="w-full bg-[#162035] border border-slate-700 rounded-md px-3 py-1.5 text-white font-mono text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-colors"
+                    className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-slate-900 font-mono text-xs focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none transition-colors"
                     placeholder="e.g. 22438"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 mb-1 font-semibold text-[11px] uppercase tracking-wider">Train Name / Description:</label>
+                  <label className="block text-slate-700 mb-1 font-semibold text-[11px] uppercase tracking-wider">Train Name / Description:</label>
                   <input
                     type="text"
                     value={trainName}
                     onChange={e => setTrainName(e.target.value)}
                     required
-                    className="w-full bg-[#162035] border border-slate-700 rounded-md px-3 py-1.5 text-white font-mono text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-colors"
+                    className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-slate-900 font-medium text-xs focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none transition-colors"
                     placeholder="e.g. Vande Bharat Express"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 mb-1 font-semibold text-[11px] uppercase tracking-wider">Train Category:</label>
+                  <label className="block text-slate-700 mb-1 font-semibold text-[11px] uppercase tracking-wider">Train Category:</label>
                   <select
                     value={trainType}
                     onChange={e => setTrainType(e.target.value)}
-                    className="w-full bg-[#162035] border border-slate-700 rounded-md px-3 py-1.5 text-white font-mono text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-colors"
+                    className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-slate-900 font-medium text-xs focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none transition-colors"
                   >
-                    <option value="VANDE_BHARAT" className="bg-[#162035] text-white">Vande Bharat Express (Priority 1)</option>
-                    <option value="RAJDHANI" className="bg-[#162035] text-white">Rajdhani / Shatabdi (Priority 1)</option>
-                    <option value="SUPERFAST" className="bg-[#162035] text-white">Superfast Express (Priority 2)</option>
-                    <option value="EXPRESS" className="bg-[#162035] text-white">Mail / Express (Priority 3)</option>
-                    <option value="FREIGHT_CONTAINER" className="bg-[#162035] text-white">Freight Container (Priority 4)</option>
-                    <option value="FREIGHT_COAL" className="bg-[#162035] text-white">Heavy Coal Freight (Priority 4)</option>
+                    <option value="VANDE_BHARAT">Vande Bharat Express (Priority 1)</option>
+                    <option value="RAJDHANI">Rajdhani / Shatabdi (Priority 1)</option>
+                    <option value="SUPERFAST">Superfast Express (Priority 2)</option>
+                    <option value="EXPRESS">Mail / Express (Priority 3)</option>
+                    <option value="FREIGHT_CONTAINER">Freight Container (Priority 4)</option>
+                    <option value="FREIGHT_COAL">Heavy Coal Freight (Priority 4)</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 mb-1 font-semibold text-[11px] uppercase tracking-wider">Priority Rank (1 to 5):</label>
+                  <label className="block text-slate-700 mb-1 font-semibold text-[11px] uppercase tracking-wider">Priority Rank (1 to 5):</label>
                   <input
                     type="number"
                     min="1"
                     max="5"
                     value={trainPriority}
                     onChange={e => setTrainPriority(Number(e.target.value))}
-                    className="w-full bg-[#162035] border border-slate-700 rounded-md px-3 py-1.5 text-white font-mono text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-colors"
+                    className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-slate-900 font-mono text-xs focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none transition-colors"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 mb-1 font-semibold text-[11px] uppercase tracking-wider">Section ID:</label>
+                  <label className="block text-slate-700 mb-1 font-semibold text-[11px] uppercase tracking-wider">Section ID:</label>
                   <select
                     value={trainSection}
                     onChange={e => handleTrainSectionChange(e.target.value)}
-                    className="w-full bg-[#162035] border border-slate-700 rounded-md px-3 py-1.5 text-white font-mono text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-colors"
+                    className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-slate-900 font-mono text-xs focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none transition-colors"
                   >
-                    <option value="NDLS-GZB" className="bg-[#162035] text-white">NDLS-GZB</option>
-                    <option value="GZB-ALJN" className="bg-[#162035] text-white">GZB-ALJN</option>
-                    <option value="ALJN-TDL" className="bg-[#162035] text-white">ALJN-TDL</option>
-                    <option value="TDL-ETW" className="bg-[#162035] text-white">TDL-ETW</option>
-                    <option value="ETW-CNB" className="bg-[#162035] text-white">ETW-CNB</option>
-                    <option value="CNB-FTP" className="bg-[#162035] text-white">CNB-FTP</option>
-                    <option value="FTP-PRYJ" className="bg-[#162035] text-white">FTP-PRYJ</option>
+                    <option value="NDLS-GZB">NDLS-GZB</option>
+                    <option value="GZB-ALJN">GZB-ALJN</option>
+                    <option value="ALJN-TDL">ALJN-TDL</option>
+                    <option value="TDL-ETW">TDL-ETW</option>
+                    <option value="ETW-CNB">ETW-CNB</option>
+                    <option value="CNB-FTP">CNB-FTP</option>
+                    <option value="FTP-PRYJ">FTP-PRYJ</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 mb-1 font-semibold text-[11px] uppercase tracking-wider">Track & Direction:</label>
+                  <label className="block text-slate-700 mb-1 font-semibold text-[11px] uppercase tracking-wider">Track & Direction:</label>
                   <select
                     value={trainTrack}
                     onChange={e => setTrainTrack(e.target.value)}
-                    className="w-full bg-[#162035] border border-slate-700 rounded-md px-3 py-1.5 text-white font-mono text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-colors"
+                    className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-slate-900 font-mono text-xs focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none transition-colors"
                   >
-                    <option value={`${trainSection}-UP`} className="bg-[#162035] text-white">{trainSection}-UP (Up Track)</option>
-                    <option value={`${trainSection}-DOWN`} className="bg-[#162035] text-white">{trainSection}-DOWN (Down Track)</option>
+                    <option value={`${trainSection}-UP`}>{trainSection}-UP (Up Track)</option>
+                    <option value={`${trainSection}-DOWN`}>{trainSection}-DOWN (Down Track)</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 mb-1 font-semibold text-[11px] uppercase tracking-wider">Scheduled Entry Time:</label>
+                  <label className="block text-slate-700 mb-1 font-semibold text-[11px] uppercase tracking-wider">Scheduled Entry Time:</label>
                   <input
                     type="datetime-local"
                     value={trainEntry}
                     onChange={e => setTrainEntry(e.target.value)}
                     required
-                    className="w-full bg-[#162035] border border-slate-700 rounded-md px-3 py-1.5 text-white font-mono text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-colors"
+                    className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-slate-900 font-mono text-xs focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none transition-colors"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 mb-1 font-semibold text-[11px] uppercase tracking-wider">Scheduled Exit Time:</label>
+                  <label className="block text-slate-700 mb-1 font-semibold text-[11px] uppercase tracking-wider">Scheduled Exit Time:</label>
                   <input
                     type="datetime-local"
                     value={trainExit}
                     onChange={e => setTrainExit(e.target.value)}
                     required
-                    className="w-full bg-[#162035] border border-slate-700 rounded-md px-3 py-1.5 text-white font-mono text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-colors"
+                    className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-slate-900 font-mono text-xs focus:border-blue-600 focus:ring-1 focus:ring-blue-600 focus:outline-none transition-colors"
                   />
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-medium transition border border-slate-700/60"
+                  className="px-3.5 py-1.5 rounded-md bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition border border-slate-300 shadow-2xs"
                 >
-                  Close
+                  Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs flex items-center gap-1.5 shadow-md transition disabled:opacity-50"
+                  className="px-4 py-1.5 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex items-center gap-1.5 shadow-2xs transition disabled:opacity-50"
                 >
                   <PlusCircle className="w-4 h-4" />
-                  <span>{submitting ? 'Inserting Timetable...' : 'Add Train Schedule'}</span>
+                  <span>{submitting ? 'Inserting...' : 'Add Train Schedule'}</span>
                 </button>
               </div>
             </form>
@@ -845,47 +845,47 @@ export const ManualSimulationModal: React.FC<ManualSimulationModalProps> = ({
           {/* Tab 3: Disruption Form */}
           {activeTab === 'disruption' && (
             <form onSubmit={handleInjectDisruption} className="space-y-3.5">
-              <div className="bg-amber-950/40 p-2.5 rounded-lg border border-amber-800/50 text-[11px] text-amber-300 flex items-start gap-2">
-                <AlertTriangle className="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
+              <div className="bg-amber-50 p-3 rounded-lg border border-amber-200 text-xs text-amber-900 flex items-start gap-2.5">
+                <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
                 <span>
                   Injecting a live delay will dynamically isolate collided blocks on this corridor, returning tasks to the queue while preserving unaffected scheduled possessions.
                 </span>
               </div>
 
-              <div className="space-y-2.5">
+              <div className="space-y-3">
                 <div>
-                  <label className="block text-slate-300 mb-1 font-semibold text-[11px] uppercase tracking-wider">Delayed Train Number:</label>
+                  <label className="block text-slate-700 mb-1 font-semibold text-[11px] uppercase tracking-wider">Delayed Train Number:</label>
                   <select
                     value={disruptTrainNo}
                     onChange={e => setDisruptTrainNo(e.target.value)}
-                    className="w-full bg-[#162035] border border-slate-700 rounded-md px-3 py-1.5 text-white font-mono text-xs focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none transition-colors"
+                    className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-slate-900 font-mono text-xs focus:border-amber-600 focus:ring-1 focus:ring-amber-600 focus:outline-none transition-colors"
                   >
-                    <option value="22436" className="bg-[#162035] text-white">22436 - Vande Bharat Express</option>
-                    <option value="12302" className="bg-[#162035] text-white">12302 - Howrah Rajdhani</option>
-                    <option value="12004" className="bg-[#162035] text-white">12004 - Shatabdi Express</option>
-                    <option value="12554" className="bg-[#162035] text-white">12554 - Vaishali Superfast</option>
-                    <option value="12005" className="bg-[#162035] text-white">12005 - Shatabdi Express Special</option>
-                    <option value="BOXN-902" className="bg-[#162035] text-white">BOXN-902 - Coal Freight Rake</option>
+                    <option value="22436">22436 - Vande Bharat Express</option>
+                    <option value="12302">12302 - Howrah Rajdhani</option>
+                    <option value="12004">12004 - Shatabdi Express</option>
+                    <option value="12554">12554 - Vaishali Superfast</option>
+                    <option value="12005">12005 - Shatabdi Express Special</option>
+                    <option value="BOXN-902">BOXN-902 - Coal Freight Rake</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 mb-1 font-semibold text-[11px] uppercase tracking-wider">Corridor Section Affected:</label>
+                  <label className="block text-slate-700 mb-1 font-semibold text-[11px] uppercase tracking-wider">Corridor Section Affected:</label>
                   <select
                     value={disruptSection}
                     onChange={e => setDisruptSection(e.target.value)}
-                    className="w-full bg-[#162035] border border-slate-700 rounded-md px-3 py-1.5 text-white font-mono text-xs focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none transition-colors"
+                    className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-slate-900 font-mono text-xs focus:border-amber-600 focus:ring-1 focus:ring-amber-600 focus:outline-none transition-colors"
                   >
-                    <option value="NDLS-GZB" className="bg-[#162035] text-white">NDLS-GZB (New Delhi – Ghaziabad)</option>
-                    <option value="GZB-ALJN" className="bg-[#162035] text-white">GZB-ALJN (Ghaziabad – Aligarh)</option>
-                    <option value="ALJN-TDL" className="bg-[#162035] text-white">ALJN-TDL (Aligarh – Tundla)</option>
-                    <option value="TDL-ETW" className="bg-[#162035] text-white">TDL-ETW (Tundla – Etawah)</option>
-                    <option value="CNB-PRYJ" className="bg-[#162035] text-white">CNB-PRYJ (Kanpur – Prayagraj)</option>
+                    <option value="NDLS-GZB">NDLS-GZB (New Delhi – Ghaziabad)</option>
+                    <option value="GZB-ALJN">GZB-ALJN (Ghaziabad – Aligarh)</option>
+                    <option value="ALJN-TDL">ALJN-TDL (Aligarh – Tundla)</option>
+                    <option value="TDL-ETW">TDL-ETW (Tundla – Etawah)</option>
+                    <option value="CNB-PRYJ">CNB-PRYJ (Kanpur – Prayagraj)</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 mb-1 font-semibold text-[11px] uppercase tracking-wider">Delay Magnitude (Minutes):</label>
+                  <label className="block text-slate-700 mb-1 font-semibold text-[11px] uppercase tracking-wider">Delay Magnitude (Minutes):</label>
                   <input
                     type="number"
                     min="10"
@@ -893,25 +893,25 @@ export const ManualSimulationModal: React.FC<ManualSimulationModalProps> = ({
                     value={disruptDelay}
                     onChange={e => setDisruptDelay(Number(e.target.value))}
                     required
-                    className="w-full bg-[#162035] border border-slate-700 rounded-md px-3 py-1.5 text-white font-mono text-xs focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none transition-colors"
+                    className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-slate-900 font-mono text-xs focus:border-amber-600 focus:ring-1 focus:ring-amber-600 focus:outline-none transition-colors"
                   />
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-medium transition border border-slate-700/60"
+                  className="px-3.5 py-1.5 rounded-md bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition border border-slate-300 shadow-2xs"
                 >
-                  Close
+                  Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-4 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold text-xs flex items-center gap-1.5 shadow-md transition disabled:opacity-50"
+                  className="px-4 py-1.5 rounded-md bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs flex items-center gap-1.5 shadow-2xs transition disabled:opacity-50"
                 >
-                  <AlertTriangle className="w-4 h-4 text-slate-950" />
+                  <AlertTriangle className="w-4 h-4" />
                   <span>{submitting ? 'Re-planning...' : 'Simulate Delay & Re-plan'}</span>
                 </button>
               </div>

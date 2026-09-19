@@ -8,7 +8,8 @@ import {
   ShieldCheck,
   RefreshCw,
   Sparkles,
-  Train
+  Train,
+  RotateCcw
 } from 'lucide-react';
 import { BlockPlan } from '../../types';
 import { Badge } from '../ui/Badge';
@@ -112,7 +113,7 @@ export const DisruptionsView: React.FC<DisruptionsViewProps> = ({
                 disabled={loading}
                 className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded text-xs font-semibold shadow-xs flex items-center gap-1.5 transition-colors disabled:opacity-50"
               >
-                <Sparkles className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+                <RotateCcw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
                 <span>{loading ? 'Re-planning...' : 'Re-plan Schedule'}</span>
               </button>
             </div>

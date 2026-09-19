@@ -177,6 +177,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                   <th className="px-4 py-3">Location</th>
                   <th className="px-4 py-3">Department</th>
                   <th className="px-4 py-3">Duration</th>
+                  <th className="px-4 py-3">Predicted Risk (14d)</th>
                   <th className="px-4 py-3">Plan Status</th>
                   <th className="px-4 py-3 text-right">Action</th>
                 </tr>
@@ -190,6 +191,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                     );
                   const isCritical = t.severity === 'CRITICAL';
                   const isScheduled = t.status === 'SCHEDULED';
+                  const riskScore = t.ai_risk_score !== undefined ? t.ai_risk_score : 0.05;
 
                   return (
                     <tr
@@ -201,7 +203,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                       <td className="px-4 py-3">
                         {isEmergency ? (
                           <Badge variant="emergency" size="sm">CRITICAL</Badge>
-                        ) : isCritical || (t.ai_risk_score || 0) >= 0.5 ? (
+                        ) : isCritical || riskScore >= 0.5 ? (
                           <Badge variant="warning" size="sm">HIGH RISK</Badge>
                         ) : (
                           <Badge variant="neutral" size="sm">ROUTINE</Badge>
@@ -243,8 +245,23 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                       </td>
 
                       {/* Duration */}
-                      <td className="px-4 py-3 font-medium text-slate-700">
+                      <td className="px-4 py-3 font-medium text-slate-700 font-mono">
                         {Math.round(t.duration_minutes / 60)}h {t.duration_minutes % 60}m
+                      </td>
+
+                      {/* Predicted Risk */}
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <span className={`font-mono font-semibold text-xs ${riskScore >= 0.5 ? 'text-amber-700' : 'text-slate-600'}`}>
+                            {(riskScore * 100).toFixed(1)}%
+                          </span>
+                          <div className="w-12 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                            <div
+                              className={`h-full ${riskScore >= 0.7 ? 'bg-red-500' : riskScore >= 0.4 ? 'bg-amber-500' : 'bg-blue-500'}`}
+                              style={{ width: `${Math.min(100, Math.max(5, riskScore * 100))}%` }}
+                            />
+                          </div>
+                        </div>
                       </td>
 
                       {/* Status */}
@@ -266,7 +283,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                             e.stopPropagation();
                             onSelectTask(t.request_id);
                           }}
-                          className="px-2.5 py-1 bg-white hover:bg-blue-50 text-blue-700 border border-slate-200 hover:border-blue-300 rounded text-xs font-semibold transition-colors"
+                          className="px-2.5 py-1 bg-white hover:bg-blue-50 text-blue-700 border border-slate-200 hover:border-blue-300 rounded text-xs font-semibold transition-colors shadow-2xs"
                         >
                           Review
                         </button>
