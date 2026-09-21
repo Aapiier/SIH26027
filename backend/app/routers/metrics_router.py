@@ -85,5 +85,5 @@ def get_dashboard_metrics(db: Session = Depends(get_db)) -> Dict[str, Any]:
         "content_hash": content_hash,
         "horizon": latest_plan.horizon if latest_plan else "WEEKLY",
         "corridor": "Bilaspur - Nagpur Corridor (BSP-NGP)",
-        "model_version": f"{get_model_metadata().get('model_name', 'HistGradientBoosting GBDT')} {get_model_metadata().get('version', 'v3.0')} (14d Risk)",
+        "model_version": f"{get_model_metadata().get('model_name', 'HistGradientBoosting GBDT')} v3.0 ({get_model_metadata().get('version', 'longitudinal')})",
     }
