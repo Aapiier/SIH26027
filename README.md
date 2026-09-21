@@ -1,5 +1,5 @@
 # RailSync AI: AI-Powered Automatic Block Planning System
-## Smart India Hackathon 2024 — Problem Statement SIH26027
+## Smart India Hackathon 2026 — Problem Statement SIH26027
 
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688?style=flat&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
